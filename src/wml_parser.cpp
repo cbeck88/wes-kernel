@@ -125,7 +125,7 @@ namespace wml
 	///////////////////////////////////////////////////////////////////////////
 	template <typename Iterator>
 	struct wml_grammar
-		: qi::grammar<Iterator, body(), qi::locals<Str>, ascii::space_type>
+		: qi::grammar<Iterator, body(), qi::locals<Str>, qi::space_type>
 	{
 		wml_grammar()
 		    : wml_grammar::base_type(wml, "wml")
@@ -174,13 +174,13 @@ namespace wml
 					       << val("\"") << std::endl);
 		}
 
-		qi::rule<Iterator, wml::body(), qi::locals<Str>, ascii::space_type> wml;
-		qi::rule<Iterator, wml::node(), ascii::space_type> node;
-		qi::rule<Iterator, Str(), ascii::space_type> start_tag;
-		qi::rule<Iterator, void(Str), ascii::space_type> end_tag;
-		qi::rule<Iterator, Pair(), ascii::space_type> pair;
-		qi::rule<Iterator, Str(), ascii::space_type> key;
-		qi::rule<Iterator, Str(), ascii::space_type> value;
+		qi::rule<Iterator, wml::body(), qi::locals<Str>, qi::space_type> wml;
+		qi::rule<Iterator, wml::node(), qi::space_type> node;
+		qi::rule<Iterator, Str(), qi::space_type> start_tag;
+		qi::rule<Iterator, void(Str), qi::space_type> end_tag;
+		qi::rule<Iterator, Pair(), qi::space_type> pair;
+		qi::rule<Iterator, Str(), qi::space_type> key;
+		qi::rule<Iterator, Str(), qi::space_type> value;
 	};
 	//]
 }
@@ -197,7 +197,7 @@ namespace wml
 		my_grammar gram; // Our grammar
 		wml::body ast;  // Our tree
 
-		using boost::spirit::ascii::space;
+		using boost::spirit::qi::space;
 		std::string::const_iterator iter = storage.begin();
 		std::string::const_iterator end = storage.end();
 		bool r = phrase_parse(iter, end, gram, space, ast);
