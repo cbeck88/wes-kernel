@@ -38,20 +38,50 @@ def WesnothProgram(env, target, source, can_build, **kw):
 
 client_env.AddMethod(WesnothProgram)
 
+#
+# wesnoth binary
+#
+
 wesnoth_objects = ["wesnoth.cpp", libwesnoth_extras]
 
 bin = env.Program("#/wesnoth", wesnoth_objects)
 env.Alias("wesnoth", bin)
 
+#
+# attr binary
+#
+
+attr_objects = ["attr.cpp", libwesnoth_extras]
+
+bin = env.Program("#/attr", attr_objects)
+env.Alias("attr", bin)
+
+#
+# json binary
+#
 
 json_objects = ["json_parser.cpp", libjson_extras]
 
 bin = env.Program("#/json", json_objects)
 env.Alias("json", bin)
 
-
+#
+# kv binary
+#
 
 bin = env.Program("#/kv", ["key_value_sequence.cpp"])
 env.Alias("kv", bin)
+
+#
+# nl binary
+
+bin = env.Program("#/nl", ["num_list.cpp"])
+env.Alias("nl", bin)
+
+#
+# attr2 binary
+
+bin = env.Program("#/attr2", ["attr2.cpp"])
+env.Alias("attr2", bin)
 
 #Export("wesnoth")

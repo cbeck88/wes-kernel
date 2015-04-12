@@ -4,4 +4,5 @@
 
 namespace wml {
 	bool parse(const std::string & str);
+	bool parse_attr(const std::string & str);
 } // end namespace wml

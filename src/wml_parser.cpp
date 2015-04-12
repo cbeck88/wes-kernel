@@ -108,7 +108,7 @@ namespace wml
 	void body_printer::operator()(body const& w) const
 	{
 		tab(indent);
-		std::cout << "tag: '" << w.name << "'" << std::endl;
+		std::cout << "tag: \"" << w.name << "\"" << std::endl;
 		tab(indent);
 		std::cout << '{' << std::endl;
 
@@ -141,11 +141,15 @@ namespace wml
 			using phoenix::construct;
 			using phoenix::val;
 
-			pair = key >> lit('=') >> value >> lit("\n");
+			pair = key >> lit('=') >> value;
 			key = qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
-			value %= lexeme[+(char_ - '[')];
+			value = angle_quoted_string | double_quoted_string | endl_terminated_string;
 
-			node %= wml | pair;
+			angle_quoted_string = lexeme[qi::string("<<") >> +(char_ - '>') >> qi::string(">>")];
+			double_quoted_string = lexeme['"' >> +(char_ - '"') >> '"'];
+			endl_terminated_string = lexeme[*(char_ - '\n')];
+
+			node = wml | pair;
 
 			start_tag %= '['
 				     >> !lit('/')
@@ -181,8 +185,53 @@ namespace wml
 		qi::rule<Iterator, Pair(), qi::space_type> pair;
 		qi::rule<Iterator, Str(), qi::space_type> key;
 		qi::rule<Iterator, Str(), qi::space_type> value;
+		qi::rule<Iterator, Str(), qi::space_type> double_quoted_string;
+		qi::rule<Iterator, Str(), qi::space_type> angle_quoted_string;
+		qi::rule<Iterator, Str(), qi::space_type> endl_terminated_string;
 	};
 	//]
+
+
+	///////////////////////////////////////////////////////////////////////////
+	//  Reduced grammar with only attribute values (for testing)
+	///////////////////////////////////////////////////////////////////////////
+	template <typename Iterator>
+	struct attr_grammar
+		: qi::grammar<Iterator, wml::Pair(), qi::space_type>
+	{
+		attr_grammar()
+		    : attr_grammar::base_type(pair, "pair")
+		{
+			using qi::lit;
+			using qi::lexeme;
+			using qi::on_error;
+			using qi::fail;
+			using ascii::char_;
+			using ascii::string;
+			using namespace qi::labels;
+
+			using phoenix::construct;
+			using phoenix::val;
+
+			pair %= key >> lit('=') >> value;
+			key %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
+			value %= lexeme[+(char_ - '[')];
+
+			key.name("attribute_key");
+			value.name("attribute_value");
+			pair.name("attribute");
+
+			on_error<fail>(
+				pair, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
+					       << val("\"") << std::endl);
+		}
+
+		qi::rule<Iterator, wml::Pair(), qi::space_type> pair;
+		qi::rule<Iterator, Str(), qi::space_type> key;
+		qi::rule<Iterator, Str(), qi::space_type> value;
+	};
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,6 +257,36 @@ namespace wml
 			std::cout << "-------------------------\n";
 			body_printer printer;
 			printer(ast);
+			return true;
+		} else {
+			std::string::const_iterator some = iter + 80;
+			std::string context(iter, (some > end) ? end : some);
+			std::cout << "-------------------------\n";
+			std::cout << "Parsing failed\n";
+			std::cout << "stopped at: \": " << context << "...\"\n";
+			std::cout << "-------------------------\n";
+			return false;
+		}
+	}
+
+
+	bool parse_attr(const std::string& storage)
+	{
+		typedef attr_grammar<std::string::const_iterator> a_grammar;
+		a_grammar gram; // Our grammar
+		wml::Pair ast;  // Our tree
+
+		using boost::spirit::qi::space;
+		std::string::const_iterator iter = storage.begin();
+		std::string::const_iterator end = storage.end();
+		bool r = phrase_parse(iter, end, gram, space, ast);
+
+		if(r && iter == end) {
+			std::cout << "-------------------------\n";
+			std::cout << "Parsing succeeded\n";
+			std::cout << "-------------------------\n";
+			std::cout << "first: '" << ast.first << "'\n";
+			std::cout << "second: '" << ast.second << "'\n";
 			return true;
 		} else {
 			std::string::const_iterator some = iter + 80;
