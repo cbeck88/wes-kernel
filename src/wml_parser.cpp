@@ -27,17 +27,19 @@ namespace wml
 	namespace qi = boost::spirit::qi;
 	namespace ascii = boost::spirit::ascii;
 
+	typedef std::string Str;
+
 	///////////////////////////////////////////////////////////////////////////
 	//  Our WML tree representation
 	///////////////////////////////////////////////////////////////////////////
 	struct body;
 
-	typedef boost::variant<boost::recursive_wrapper<body>, std::string>
+	typedef boost::variant<boost::recursive_wrapper<body>, Str>
 		node;
 
 	struct body
 	{
-		std::string name;	   // tag name
+		Str name;	   // tag name
 		std::vector<node> children; // children
 	};
 }
@@ -46,7 +48,7 @@ namespace wml
 // to make it a first-class fusion citizen
 BOOST_FUSION_ADAPT_STRUCT(
 	wml::body,
-	(std::string, name)(std::vector<wml::node>, children))
+	(wml::Str, name)(std::vector<wml::node>, children))
 
 namespace wml
 {
@@ -85,7 +87,7 @@ namespace wml
 			body_printer(indent + tabsize)(w);
 		}
 
-		void operator()(std::string const& text) const
+		void operator()(Str const& text) const
 		{
 			tab(indent + tabsize);
 			std::cout << "text: \"" << text << '"' << std::endl;
@@ -115,7 +117,7 @@ namespace wml
 	//[tutorial_xml2_grammar
 	template <typename Iterator>
 	struct wml_grammar
-		: qi::grammar<Iterator, body(), qi::locals<std::string>, ascii::space_type>
+		: qi::grammar<Iterator, body(), qi::locals<Str>, ascii::space_type>
 	{
 		wml_grammar()
 		    : wml_grammar::base_type(wml)
@@ -143,11 +145,11 @@ namespace wml
 			       >> end_tag(_a);
 		}
 
-		qi::rule<Iterator, wml::body(), qi::locals<std::string>, ascii::space_type> wml;
+		qi::rule<Iterator, wml::body(), qi::locals<Str>, ascii::space_type> wml;
 		qi::rule<Iterator, wml::node(), ascii::space_type> node;
-		qi::rule<Iterator, std::string(), ascii::space_type> text;
-		qi::rule<Iterator, std::string(), ascii::space_type> start_tag;
-		qi::rule<Iterator, void(std::string), ascii::space_type> end_tag;
+		qi::rule<Iterator, Str(), ascii::space_type> text;
+		qi::rule<Iterator, Str(), ascii::space_type> start_tag;
+		qi::rule<Iterator, void(Str), ascii::space_type> end_tag;
 	};
 	//]
 }
