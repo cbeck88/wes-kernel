@@ -1,0 +1,28 @@
+import commands, os
+from subprocess import Popen, PIPE
+from glob import glob
+
+Import("*")
+
+#
+# Target declarations
+#
+
+def error_action(target, source, env):
+    from SCons.Errors import UserError
+    raise UserError, "Target disabled because its prerequisites are not met"
+
+def WesnothProgram(env, target, source, can_build, **kw):
+    bin = env.Program("#/" + target + build_suffix, source, **kw)
+    env.Alias(target, bin)
+    locals()[target] = bin
+    Export(target)
+
+client_env.AddMethod(WesnothProgram)
+
+wesnoth_objects = ["wesnoth.cpp"]
+
+bin = env.Program("#/wesnoth", wesnoth_objects)
+env.Alias("wesnoth", bin)
+
+#Export("wesnoth")
