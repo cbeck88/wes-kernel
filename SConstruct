@@ -21,10 +21,13 @@ opts.AddVariables(
 	('extra_flags_config', 'Extra compiler and linker flags to use for configuration and all builds', ""),
 	PathVariable('bindir', 'Where to install binaries', "bin", PathVariable.PathAccept),
 	('cachedir', 'Directory that contains a cache of derived files.', ''),
+	('host', 'Cross-compile host.', ''),
+	('jobs', 'Set the number of parallel compilations', "1", lambda key, value, env: int(value), int),
+	PathVariable('prefix', 'autotools-style installation prefix', "/usr/local", PathVariable.PathAccept),
+	BoolVariable("fast", "Make scons faster at cost of less precise dependency tracking.", False),
 	BoolVariable("lockfile", "Create a lockfile to prevent multiple instances of scons from being run at the same time on this working copy.", False),
 	BoolVariable("OS_ENV", "Forward the entire OS environment to scons", False),
-	BoolVariable('ccache', "Use ccache", False),
-	('jobs', 'Set the number of parallel compilations', "1", lambda key, value, env: int(value), int))
+	BoolVariable('ccache', "Use ccache", False))
 
 
 #
@@ -99,17 +102,16 @@ env.MergeFlags(env["extra_flags_config"])
 
 conf = env.Configure(**configure_args)
 
-have_prereqs = (conf.CheckCPlusPlus(gcc_version = "3.3")) #& \
-#        conf.CheckBoost("iostreams", require_version = "1.34.1") & \
-#        conf.CheckBoostIostreamsGZip() & \
-#        conf.CheckBoostIostreamsBZip2() & \
-#        conf.CheckBoost("random",require_version = "1.40.0") & \
-#        conf.CheckBoost("smart_ptr", header_only = True) & \
-#        conf.CheckBoost("system") & \
-#        conf.CheckBoost("filesystem", require_version = "1.44.0") & \
-#        have_i18n_prereqs() \
-#            and Info("GOOD: Base prerequisites are met")) \
-#            or Warning("WARN: Base prerequisites are not met")
+have_prereqs = (conf.CheckCPlusPlus(gcc_version = "3.3") & \
+	conf.CheckBoost("iostreams", require_version = "1.34.1") & \
+	conf.CheckBoostIostreamsGZip() & \
+	conf.CheckBoostIostreamsBZip2() & \
+	conf.CheckBoost("random",require_version = "1.40.0") & \
+	conf.CheckBoost("smart_ptr", header_only = True) & \
+	conf.CheckBoost("system") & \
+	conf.CheckBoost("filesystem", require_version = "1.44.0") \
+            and Info("GOOD: Base prerequisites are met")) \
+            or Warning("WARN: Base prerequisites are not met")
 
 print "  " + env.subst("If any config checks fail, look in $build_dir/config.log for details")
 print "  If a check fails spuriously due to caching, use --config=force to force its rerun"
@@ -126,7 +128,7 @@ env.Prepend(CPPPATH = [build_root + "$build_dir", "#/src"])
 env.Append(CPPDEFINES = ["HAVE_CONFIG_H"])
 
 if "gcc" in env["TOOLS"]:
-    env.AppendUnique(CCFLAGS = Split("-W -Wall"), CFLAGS = ["-std=c99"])
+    env.AppendUnique(CCFLAGS = Split("-W -Wall -std=c++0x"))
 
 
 env = conf.Finish()
