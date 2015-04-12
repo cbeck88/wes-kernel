@@ -4,6 +4,7 @@
 ///
 
 #define BOOST_SPIRIT_USE_PHOENIX_V3
+#define BOOST_SPIRIT_UNICODE
 
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
@@ -27,7 +28,6 @@ namespace wml
 	namespace fusion = boost::fusion;
 	namespace phoenix = boost::phoenix;
 	namespace qi = boost::spirit::qi;
-	namespace ascii = boost::spirit::ascii;
 
 	typedef std::string Str;
 	typedef std::pair<Str, Str> Pair;
@@ -134,8 +134,8 @@ namespace wml
 			using qi::lexeme;
 			using qi::on_error;
 			using qi::fail;
-			using ascii::char_;
-			using ascii::string;
+			using qi::char_;
+			using qi::string;
 			using namespace qi::labels;
 
 			using phoenix::construct;
@@ -206,8 +206,8 @@ namespace wml
 			using qi::lexeme;
 			using qi::on_error;
 			using qi::fail;
-			using ascii::char_;
-			using ascii::string;
+			using qi::char_;
+			using qi::string;
 			using namespace qi::labels;
 
 			using phoenix::construct;
@@ -321,12 +321,14 @@ namespace wml
 						if (temp.substr(0,6) == "define") {
 							if (in_define) {
 								std::cerr << "Found #define inside of #define\n";
+								std::cerr << "***\n" << output << "\n";
 								return false;
 							}
 							in_define = true;
 						} else if (temp.substr(0,6) == "enddef") {
 							if (!in_define) {
 								std::cerr << "Found #enddef outside of #define\n";
+								std::cerr << "***\n" << output << "\n";
 								return false;
 							}
 							in_define = true;
