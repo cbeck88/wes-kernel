@@ -143,7 +143,7 @@ namespace wml
 
 			pair = key >> lit('=') >> value;
 			key = qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
-			value = angle_quoted_string | double_quoted_string | endl_terminated_string;
+			value = -lit('_') >> (angle_quoted_string | double_quoted_string | endl_terminated_string);
 
 			angle_quoted_string = lexeme[qi::string("<<") >> +(char_ - '>') >> qi::string(">>")];
 			double_quoted_string = lexeme['"' >> +(char_ - '"') >> '"'];
@@ -298,4 +298,75 @@ namespace wml
 			return false;
 		}
 	}
+
+	bool strip_preprocessor(std::string & input)
+	{
+		std::stringstream ss;
+		ss.str(input);
+
+		std::string output;
+
+		bool in_define = false;
+		int brace_depth = 0;
+		char c;
+
+		while(ss) {
+			ss.get(c);
+
+			switch(c) {
+				case '#': {
+					std::string temp;
+					getline(ss, temp);
+					if (temp.size() >= 6) {
+						if (temp.substr(0,6) == "define") {
+							if (in_define) {
+								std::cerr << "Found #define inside of #define\n";
+								return false;
+							}
+							in_define = true;
+						} else if (temp.substr(0,6) == "enddef") {
+							if (!in_define) {
+								std::cerr << "Found #enddef outside of #define\n";
+								return false;
+							}
+							in_define = true;
+						}
+					}
+					break;
+				}
+				case '{': {
+					brace_depth++;
+					break;
+				}
+				case '}': {
+					if (brace_depth <= 0) {
+						std::cerr << "Found unexpected '{'\n";
+						std::cerr << "***\n" << output << "\n";
+						return false;
+					}
+					brace_depth--;
+					break;
+				}
+				default: {
+					if (!in_define && brace_depth == 0) {
+						output += c;
+					}
+					
+					break;
+				}
+			}
+		}
+
+		std::cout << "*** Finished stripping preprocessing: ***" << std::endl;
+		std::cout << input << std::endl;
+		std::cout << "----->" << std::endl;
+		std::cout << output << std::endl;
+		std::cout << "***\n" << std::endl;
+
+		input = output;
+
+		return true;
+	}
 }
+
+

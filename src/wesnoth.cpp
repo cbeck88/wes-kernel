@@ -38,6 +38,7 @@ int main(int argc, char **argv)
         std::istream_iterator<char>(),
         std::back_inserter(storage));
 
+	wml::strip_preprocessor(storage);
 
 	if (wml::parse(storage)) {
 		std::cout << "Returning SUCCESS.\n";
