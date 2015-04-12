@@ -8,6 +8,7 @@
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
@@ -41,7 +42,7 @@ namespace wml
 
 	struct body
 	{
-		Str name;	   // tag name
+		Str name;		    // tag name
 		std::vector<node> children; // children
 	};
 }
@@ -128,17 +129,21 @@ namespace wml
 		: qi::grammar<Iterator, body(), qi::locals<Str>, ascii::space_type>
 	{
 		wml_grammar()
-		    : wml_grammar::base_type(wml)
+		    : wml_grammar::base_type(wml, "wml")
 		{
 			using qi::lit;
 			using qi::lexeme;
+			using qi::on_error;
+			using qi::fail;
 			using ascii::char_;
 			using ascii::string;
 			using namespace qi::labels;
 
+			using phoenix::construct;
+			using phoenix::val;
 
-			pair  =  key >> '=' >> value >> "\n";
-			key   =  qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
+			pair = key >> lit('=') >> value >> lit("\n");
+			key = qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
 			value %= lexeme[+(char_ - '[')];
 
 			node %= wml | pair;
@@ -155,13 +160,26 @@ namespace wml
 			wml %= start_tag[_a = _1]
 			       >> *node
 			       >> end_tag(_a);
+
+			wml.name("wml");
+			node.name("node");
+			start_tag.name("start_tag");
+			end_tag.name("end_tag");
+			key.name("attribute_key");
+			value.name("attribute_value");
+			pair.name("attribute");
+
+			on_error<fail>(
+				wml, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
+					       << val("\"") << std::endl);
 		}
 
 		qi::rule<Iterator, wml::body(), qi::locals<Str>, ascii::space_type> wml;
 		qi::rule<Iterator, wml::node(), ascii::space_type> node;
 		qi::rule<Iterator, Str(), ascii::space_type> start_tag;
 		qi::rule<Iterator, void(Str), ascii::space_type> end_tag;
-	        qi::rule<Iterator, Pair(), ascii::space_type> pair;
+		qi::rule<Iterator, Pair(), ascii::space_type> pair;
 		qi::rule<Iterator, Str(), ascii::space_type> key;
 		qi::rule<Iterator, Str(), ascii::space_type> value;
 	};
