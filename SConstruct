@@ -21,6 +21,7 @@ opts.AddVariables(
 	('extra_flags_config', 'Extra compiler and linker flags to use for configuration and all builds', ""),
 	PathVariable('bindir', 'Where to install binaries', "bin", PathVariable.PathAccept),
 	('cachedir', 'Directory that contains a cache of derived files.', ''),
+	('cxxtool', 'Set c++ compiler command if not using standard compiler.'),
 	('host', 'Cross-compile host.', ''),
 	('jobs', 'Set the number of parallel compilations', "1", lambda key, value, env: int(value), int),
 	PathVariable('prefix', 'autotools-style installation prefix', "/usr/local", PathVariable.PathAccept),
