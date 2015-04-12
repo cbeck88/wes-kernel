@@ -161,9 +161,9 @@ namespace wml
 		qi::rule<Iterator, wml::node(), ascii::space_type> node;
 		qi::rule<Iterator, Str(), ascii::space_type> start_tag;
 		qi::rule<Iterator, void(Str), ascii::space_type> end_tag;
-	        qi::rule<Iterator, Pair()> pair;
-		qi::rule<Iterator, Str()> key;
-		qi::rule<Iterator, Str()> value;
+	        qi::rule<Iterator, Pair(), ascii::space_type> pair;
+		qi::rule<Iterator, Str(), ascii::space_type> key;
+		qi::rule<Iterator, Str(), ascii::space_type> value;
 	};
 	//]
 }
