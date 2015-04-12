@@ -5,6 +5,16 @@ from glob import glob
 Import("*")
 
 #
+# Source lists
+#
+
+wesnoth_sources = Split("""
+	parser.cpp
+""")
+
+libwesnoth_extras = client_env.Library("wesnoth_extras", wesnoth_sources)
+
+#
 # Target declarations
 #
 
@@ -20,7 +30,7 @@ def WesnothProgram(env, target, source, can_build, **kw):
 
 client_env.AddMethod(WesnothProgram)
 
-wesnoth_objects = ["wesnoth.cpp"]
+wesnoth_objects = ["wesnoth.cpp", libwesnoth_extras]
 
 bin = env.Program("#/wesnoth", wesnoth_objects)
 env.Alias("wesnoth", bin)
