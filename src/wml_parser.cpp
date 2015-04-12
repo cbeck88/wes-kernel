@@ -210,12 +210,36 @@ namespace wml
 			printer(ast);
 			return true;
 		} else {
-			std::string::const_iterator some = iter + 30;
+			std::string::const_iterator some = iter + 80;
 			std::string context(iter, (some > end) ? end : some);
 			std::cout << "-------------------------\n";
 			std::cout << "Parsing failed\n";
 			std::cout << "stopped at: \": " << context << "...\"\n";
 			std::cout << "-------------------------\n";
+
+			std::cout << "\n\nTrying again as a pair:\n\n";
+
+			std::string foo = "foo = bar";
+			std::string::const_iterator iter = foo.begin();
+			std::string::const_iterator end = foo.end();
+
+			wml::Pair p;
+			bool r = phrase_parse(iter, end, gram.pair, space, p);
+
+			if(r && iter == end) {
+				std::cout << "-------------------------\n";
+				std::cout << "Parsing succeeded\n";
+				std::cout << "-------------------------\n";
+				body_printer printer;
+				//std::cout << p << std::endl;
+			} else {
+				std::string::const_iterator some = iter + 80;
+				std::string context(iter, (some > end) ? end : some);
+				std::cout << "-------------------------\n";
+				std::cout << "Parsing failed\n";
+				std::cout << "stopped at: \": " << context << "...\"\n";
+				std::cout << "-------------------------\n";
+			}
 			return false;
 		}
 	}
