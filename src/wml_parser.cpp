@@ -12,6 +12,7 @@
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/fusion/include/std_pair.hpp>
 #include <boost/variant/recursive_variant.hpp>
 #include <boost/foreach.hpp>
 
@@ -28,13 +29,14 @@ namespace wml
 	namespace ascii = boost::spirit::ascii;
 
 	typedef std::string Str;
+	typedef std::pair<Str, Str> Pair;
 
 	///////////////////////////////////////////////////////////////////////////
 	//  Our WML tree representation
 	///////////////////////////////////////////////////////////////////////////
 	struct body;
 
-	typedef boost::variant<boost::recursive_wrapper<body>, Str>
+	typedef boost::variant<boost::recursive_wrapper<body>, Pair>
 		node;
 
 	struct body
@@ -93,6 +95,12 @@ namespace wml
 			std::cout << "text: \"" << text << '"' << std::endl;
 		}
 
+		void operator()(Pair const& p) const
+		{
+			tab(indent + tabsize);
+			std::cout << p.first << ": \"" << p.second << "\"" << std::endl;
+		}
+
 		int indent;
 	};
 
@@ -128,8 +136,12 @@ namespace wml
 			using ascii::string;
 			using namespace qi::labels;
 
-			text %= lexeme[+(char_ - '[')];
-			node %= wml | text;
+
+			pair  =  key >> '=' >> value >> "\n";
+			key   =  qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
+			value %= lexeme[+(char_ - '[')];
+
+			node %= wml | pair;
 
 			start_tag %= '['
 				     >> !lit('/')
@@ -147,9 +159,11 @@ namespace wml
 
 		qi::rule<Iterator, wml::body(), qi::locals<Str>, ascii::space_type> wml;
 		qi::rule<Iterator, wml::node(), ascii::space_type> node;
-		qi::rule<Iterator, Str(), ascii::space_type> text;
 		qi::rule<Iterator, Str(), ascii::space_type> start_tag;
 		qi::rule<Iterator, void(Str), ascii::space_type> end_tag;
+	        qi::rule<Iterator, Pair()> pair;
+		qi::rule<Iterator, Str()> key;
+		qi::rule<Iterator, Str()> value;
 	};
 	//]
 }
