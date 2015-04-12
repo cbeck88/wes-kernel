@@ -9,11 +9,18 @@ Import("*")
 #
 
 wesnoth_sources = Split("""
-	parser.cpp
 	wml_parser.cpp
 """)
 
 libwesnoth_extras = client_env.Library("wesnoth_extras", wesnoth_sources)
+
+
+
+json_parser_sources = Split("""
+	parser.cpp
+""")
+
+libjson_extras = client_env.Library("json_extras", json_parser_sources)
 
 #
 # Target declarations
@@ -35,5 +42,16 @@ wesnoth_objects = ["wesnoth.cpp", libwesnoth_extras]
 
 bin = env.Program("#/wesnoth", wesnoth_objects)
 env.Alias("wesnoth", bin)
+
+
+json_objects = ["json_parser.cpp", libjson_extras]
+
+bin = env.Program("#/json", json_objects)
+env.Alias("json", bin)
+
+
+
+bin = env.Program("#/kv", ["key_value_sequence.cpp"])
+env.Alias("kv", bin)
 
 #Export("wesnoth")

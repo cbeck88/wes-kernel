@@ -1,3 +1,5 @@
 .scons-option-cache
 build/
 wesnoth
+json
+kv
