@@ -47,7 +47,7 @@ namespace wml
 	};
 }
 
-// We need to tell fusion about our mini_xml struct
+// We need to tell fusion about our wml struct
 // to make it a first-class fusion citizen
 BOOST_FUSION_ADAPT_STRUCT(
 	wml::body,
@@ -56,7 +56,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 namespace wml
 {
 	///////////////////////////////////////////////////////////////////////////
-	//  Print out the mini xml tree
+	//  Print out the wml tree
 	///////////////////////////////////////////////////////////////////////////
 	int const tabsize = 4;
 
@@ -121,9 +121,8 @@ namespace wml
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	//  Our mini XML grammar definition
+	//  Our WML grammar definition
 	///////////////////////////////////////////////////////////////////////////
-	//[tutorial_xml2_grammar
 	template <typename Iterator>
 	struct wml_grammar
 		: qi::grammar<Iterator, body(), qi::locals<Str>, ascii::space_type>
@@ -195,13 +194,13 @@ namespace wml
 	bool parse(const std::string& storage)
 	{
 		typedef wml_grammar<std::string::const_iterator> my_grammar;
-		my_grammar xml; // Our grammar
+		my_grammar gram; // Our grammar
 		wml::body ast;  // Our tree
 
 		using boost::spirit::ascii::space;
 		std::string::const_iterator iter = storage.begin();
 		std::string::const_iterator end = storage.end();
-		bool r = phrase_parse(iter, end, xml, space, ast);
+		bool r = phrase_parse(iter, end, gram, space, ast);
 
 		if(r && iter == end) {
 			std::cout << "-------------------------\n";
