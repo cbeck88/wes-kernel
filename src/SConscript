@@ -10,6 +10,7 @@ Import("*")
 
 wesnoth_sources = Split("""
 	parser.cpp
+	wml_parser.cpp
 """)
 
 libwesnoth_extras = client_env.Library("wesnoth_extras", wesnoth_sources)
