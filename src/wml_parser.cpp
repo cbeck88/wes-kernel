@@ -159,7 +159,7 @@ namespace wml
 
 			pair = *ws.weak >> keylist >> *ws.weak > lit('=') > value;
 			key = char_("a-zA-Z_") >> *char_("a-zA-Z_0-9");
-			keylist = (*ws.weak > key) % (*ws.weak >> char_(","));
+			keylist = (*ws.weak >> key) % (*ws.weak >> char_(","));
 			value = *(*ws.weak >> (angle_quoted_string | double_quoted_string | no_quotes_no_endl_string)) >> *ws.weak >> ws.endl;
 
 			angle_quoted_string = ("<<" >> *(char_ - ">>")) > lit(">>");

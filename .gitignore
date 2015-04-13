@@ -1,6 +1,6 @@
 .scons-option-cache
 build/
-wesnoth
+wml
 json
 kv
 attr

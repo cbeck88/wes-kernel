@@ -39,13 +39,13 @@ def WesnothProgram(env, target, source, can_build, **kw):
 client_env.AddMethod(WesnothProgram)
 
 #
-# wesnoth binary
+# wml (parser) binary
 #
 
-wesnoth_objects = ["wesnoth.cpp", libwesnoth_extras]
+wml_objects = ["wml.cpp", libwesnoth_extras]
 
-bin = env.Program("#/wesnoth", wesnoth_objects)
-env.Alias("wesnoth", bin)
+bin = env.Program("#/wml", wml_objects)
+env.Alias("wml", bin)
 
 #
 # attr binary

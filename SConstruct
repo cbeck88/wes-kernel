@@ -16,7 +16,7 @@ opts = Variables(GetOption("option_cache"))
 
 opts.AddVariables(
 	ListVariable('default_targets', 'Targets that will be built if no target is specified in command line.',
-		"wesnoth", ["wesnoth"]),
+		"wml", ["wml"]),
 	PathVariable('build_dir', 'Build all intermediate files(objects, test programs, etc) under this dir', "build", PathVariable.PathAccept),
 	('extra_flags_config', 'Extra compiler and linker flags to use for configuration and all builds', ""),
 	PathVariable('bindir', 'Where to install binaries', "bin", PathVariable.PathAccept),
@@ -142,7 +142,7 @@ build_dir = os.path.join("$build_dir", "build")
 
 env.SConscript("src/SConscript", variant_dir = build_dir, duplicate = False)
 
-binaries = Split("wesnoth")
+binaries = Split("wml, test, attr, attr2, nl, kv")
 #Import(binaries + ["sources"])
 
 all = env.Alias("all", map(Alias, binaries))
