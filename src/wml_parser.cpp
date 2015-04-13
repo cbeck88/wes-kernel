@@ -506,6 +506,15 @@ a= b\n\
 [/foo]\n\
 ", gram);
 
+		wml::test_case("[foo]\na=\n[/foo]", gram);
+
+		auto node_gram = gram.pair;
+
+		wml::test_case("a=\n", node_gram);
+
+
+		wml::test_case("[foo]a=b\n[/foo]", gram);
+
 	}
 
 }
