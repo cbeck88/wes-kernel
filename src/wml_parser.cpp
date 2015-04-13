@@ -223,7 +223,6 @@ namespace wml
 		qi::rule<Iterator, Str(), qi::space_type> endl_terminated_string;
 
 	};
-	//]
 }
 
 ////
