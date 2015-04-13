@@ -224,48 +224,6 @@ namespace wml
 
 	};
 	//]
-
-
-	///////////////////////////////////////////////////////////////////////////
-	//  Reduced grammar with only attribute values (for testing)
-	///////////////////////////////////////////////////////////////////////////
-	template <typename Iterator>
-	struct attr_grammar
-		: qi::grammar<Iterator, wml::Pair(), qi::space_type>
-	{
-		attr_grammar()
-		    : attr_grammar::base_type(pair, "pair")
-		{
-			using qi::lit;
-			using qi::lexeme;
-			using qi::on_error;
-			using qi::fail;
-			using qi::char_;
-			using qi::string;
-			using namespace qi::labels;
-
-			using phoenix::construct;
-			using phoenix::val;
-
-			pair %= key >> lit('=') >> value;
-			key %= qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
-			value %= lexeme[+(char_ - '[')];
-
-			key.name("attribute_key");
-			value.name("attribute_value");
-			pair.name("attribute");
-
-			on_error<fail>(
-				pair, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
-					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
-					       << val("\"") << std::endl);
-		}
-
-		qi::rule<Iterator, wml::Pair(), qi::space_type> pair;
-		qi::rule<Iterator, Str(), qi::space_type> key;
-		qi::rule<Iterator, Str(), qi::space_type> value;
-	};
-
 }
 
 ////
