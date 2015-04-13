@@ -151,14 +151,14 @@ namespace wml
 
 			node = wml | pair;
 
-			start_tag %= '['
+			start_tag %= lit('[')
 				     >> !lit('/')
 				     >> lexeme[+(char_ - ']')]
-				     >> ']';
+				     >> lit(']');
 
-			end_tag = "[/"
+			end_tag = lit("[/")
 				  >> string(_r1)
-				  >> ']';
+				  >> lit(']');
 
 			wml %= start_tag[_a = _1]
 			       >> *node
