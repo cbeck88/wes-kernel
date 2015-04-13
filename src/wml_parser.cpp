@@ -155,14 +155,14 @@ namespace wml
 
 			ws = whitespace<Iterator>();
 
-			pair = *ws.weak >> keylist >> *ws.weak > lit('=') >> *ws.weak > value >> *ws.weak >> ws.endl;
+			pair = *ws.weak >> keylist >> *ws.weak > lit('=') > value;
 			key = char_("a-zA-Z_") >> *char_("a-zA-Z_0-9");
-			keylist = key >> *(*ws.weak >> char_(",") >> *ws.weak > key);
-			value = -(lit('_') >> *ws.weak) >> (angle_quoted_string | double_quoted_string | endl_terminated_string);
+			keylist = (*ws.weak > key) % (*ws.weak >> char_(","));
+			value = *(*ws.weak >> (angle_quoted_string | double_quoted_string | endl_terminated_string)) >> *ws.weak >> ws.endl;
 
-			angle_quoted_string = qi::string("<<") >> +(char_ - ">>") >> qi::string(">>");
-			double_quoted_string = '"' >> +(char_ - '"') >> '"';
-			endl_terminated_string = *(char_ - '\n');
+			angle_quoted_string = qi::string("<<") >> *(char_ - ">>") >> qi::string(">>");
+			double_quoted_string = '"' >> *(char_ - '"') >> '"';
+			endl_terminated_string = +(char_ - char_("\n\"") - "<<");
 
 			node = wml | pair;
 
@@ -268,6 +268,9 @@ namespace wml {
 template<typename T>
 bool test_case(const char * str, T & gram, bool expected = true)
 {
+	static int test_case = 1;
+	std::cerr << "Test case: " << test_case++ << std::endl;
+
 	static bool always_show = false;
 
 	using boost::spirit::qi::space;
