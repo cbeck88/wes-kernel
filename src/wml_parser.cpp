@@ -466,11 +466,11 @@ namespace wml
 			}
 		}
 
-		std::cout << "*** Finished stripping preprocessing: ***" << std::endl;
-		std::cout << input << std::endl;
-		std::cout << "----->" << std::endl;
-		std::cout << output << std::endl;
-		std::cout << "***\n" << std::endl;
+		//std::cout << "*** Finished stripping preprocessing: ***" << std::endl;
+		//std::cout << input << std::endl;
+		//std::cout << "----->" << std::endl;
+		//std::cout << output << std::endl;
+		//std::cout << "***\n" << std::endl;
 
 		input = output;
 
