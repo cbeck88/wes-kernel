@@ -328,6 +328,10 @@ namespace wml
 		std::string output;
 
 		bool in_define = false;
+
+		int line = 1;
+		std::string line_buffer;
+		int define_line = 0;
 		int brace_depth = 0;
 		char c;
 
@@ -340,19 +344,22 @@ namespace wml
 					getline(ss, temp);
 					if (temp.size() >= 6) {
 						if (temp.substr(0,6) == "define") {
+							std::cerr << "DEBUG: got a line with a #define, number '" << line << "':\n'" << temp << "'\n";
 							if (in_define) {
 								std::cerr << "Found #define inside of #define\n";
+								std::cerr << "Earlier define was at line " << define_line << "\n";
 								std::cerr << "***\n" << output << "\n";
 								return false;
 							}
 							in_define = true;
+							define_line = line;
 						} else if (temp.substr(0,6) == "enddef") {
 							if (!in_define) {
 								std::cerr << "Found #enddef outside of #define\n";
 								std::cerr << "***\n" << output << "\n";
 								return false;
 							}
-							in_define = true;
+							in_define = false;
 						}
 					}
 					break;
@@ -373,10 +380,15 @@ namespace wml
 				default: {
 					if (!in_define && brace_depth == 0) {
 						output += c;
+						line_buffer += c;
 					}
 					
 					break;
 				}
+			}
+			if (c == '\n') {
+				++line;
+				line_buffer = "";
 			}
 		}
 
