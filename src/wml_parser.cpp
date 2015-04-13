@@ -192,11 +192,23 @@ namespace wml
 			on_error<fail>(
 				node, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
-					       << val("\"") << std::endl);*/
+					       << val("\"") << std::endl);
 			on_error<fail>(
 				wml, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
-					       << val("\"") << std::endl);
+					       << val("\"") << std::endl);*/
+
+      BOOST_SPIRIT_DEBUG_NODE(wml);
+      BOOST_SPIRIT_DEBUG_NODE(node);
+      BOOST_SPIRIT_DEBUG_NODE(start_tag);
+      BOOST_SPIRIT_DEBUG_NODE(end_tag);
+      BOOST_SPIRIT_DEBUG_NODE(pair);
+      BOOST_SPIRIT_DEBUG_NODE(key);
+      BOOST_SPIRIT_DEBUG_NODE(value);
+      BOOST_SPIRIT_DEBUG_NODE(double_quoted_string);
+      BOOST_SPIRIT_DEBUG_NODE(angle_quoted_string);
+      BOOST_SPIRIT_DEBUG_NODE(endl_terminated_string);
+
 		}
 
 		qi::rule<Iterator, wml::body(), qi::locals<Str>, qi::space_type> wml;
@@ -209,6 +221,7 @@ namespace wml
 		qi::rule<Iterator, Str(), qi::space_type> double_quoted_string;
 		qi::rule<Iterator, Str(), qi::space_type> angle_quoted_string;
 		qi::rule<Iterator, Str(), qi::space_type> endl_terminated_string;
+
 	};
 	//]
 
@@ -293,8 +306,9 @@ namespace wml
 
 	bool parse_attr(const std::string& storage)
 	{
-		typedef attr_grammar<std::string::const_iterator> a_grammar;
-		a_grammar gram; // Our grammar
+		typedef wml_grammar<std::string::const_iterator> my_grammar;
+		my_grammar grammar;
+		auto gram = grammar.pair;
 		wml::Pair ast;  // Our tree
 
 		using boost::spirit::qi::space;
