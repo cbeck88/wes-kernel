@@ -124,6 +124,8 @@ namespace wml
 	//  Our WML grammar definition
 	///////////////////////////////////////////////////////////////////////////
 
+	static std::ostream * errbuf = 0;
+
 	template <typename Iterator>
 	struct whitespace {
 		qi::rule<Iterator> weak, endl, all;
@@ -192,40 +194,40 @@ namespace wml
 			no_quotes_no_endl_string.name("unquoted-string");
 
 			on_error<fail>(
-				key, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+				key, (errbuf ? *errbuf : std::cerr) << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 
 					       << val("\"") << std::endl);
 
 			on_error<fail>(
-				keylist, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+				keylist, (errbuf ? *errbuf : std::cerr) << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 
 					       << val("\"") << std::endl);
 
 			on_error<fail>(
-				value, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+				value, (errbuf ? *errbuf : std::cerr) << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 					       << val("\"") << std::endl);
 
 
 			on_error<fail>(
-				pair, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+				pair, (errbuf ? *errbuf : std::cerr) << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 					       << val("\"") << std::endl);
 
 			on_error<fail>(
-				start_tag, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+				start_tag, (errbuf ? *errbuf : std::cerr) << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 					       << val("\"") << std::endl);
 
 			on_error<fail>(
-				end_tag, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+				end_tag, (errbuf ? *errbuf : std::cerr) << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 					       << val("\"") << std::endl);
 
 			on_error<fail>(
-				wml, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+				wml, (errbuf ? *errbuf : std::cerr) << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 					       << val("\"") << std::endl);
 
@@ -271,6 +273,10 @@ bool test_case(const char * str, T & gram, bool expected = true)
 	static int test_case = 1;
 	std::cerr << "Test case: " << test_case++ << std::endl;
 
+	std::ostream * old_err_buf = wml::errbuf;
+	std::stringstream foo;
+	wml::errbuf = & foo;
+
 	static bool always_show = false;
 
 	using boost::spirit::qi::space;
@@ -280,8 +286,6 @@ bool test_case(const char * str, T & gram, bool expected = true)
 	}
 	std::string::const_iterator iter = storage.begin();
 	std::string::const_iterator end = storage.end();
-
-	std::stringstream foo;
 
 			foo << "-------------------------\n";
 			foo << "Test case:\n";
@@ -295,6 +299,7 @@ bool test_case(const char * str, T & gram, bool expected = true)
 			foo << "Parsing succeeded\n";
 			foo << "-------------------------\n";
 			if (always_show || true != expected) std::cout << foo.str() << std::endl;
+			wml::errbuf = old_err_buf;
 			return true == expected;
 		} else {
 			std::string::const_iterator some = iter + 80;
@@ -304,6 +309,7 @@ bool test_case(const char * str, T & gram, bool expected = true)
 			foo << "stopped at: \": " << context << "...\"\n";
 			foo << "-------------------------\n";
 			if (always_show || false != expected) std::cout << foo.str() << std::endl;
+			wml::errbuf = old_err_buf;
 			return false == expected;
 		}
 
