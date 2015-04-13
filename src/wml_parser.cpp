@@ -158,11 +158,11 @@ namespace wml
 			pair = *ws.weak >> keylist >> *ws.weak > lit('=') > value;
 			key = char_("a-zA-Z_") >> *char_("a-zA-Z_0-9");
 			keylist = (*ws.weak > key) % (*ws.weak >> char_(","));
-			value = *(*ws.weak >> (angle_quoted_string | double_quoted_string | endl_terminated_string)) >> *ws.weak >> ws.endl;
+			value = *(*ws.weak >> (angle_quoted_string | double_quoted_string | no_quotes_no_endl_string)) >> *ws.weak >> ws.endl;
 
 			angle_quoted_string = qi::string("<<") >> *(char_ - ">>") >> qi::string(">>");
 			double_quoted_string = '"' >> *(char_ - '"') >> '"';
-			endl_terminated_string = +(char_ - char_("\n\"") - "<<");
+			no_quotes_no_endl_string = +(char_ - char_("\n\"") - "<<");
 
 			node = wml | pair;
 
@@ -188,8 +188,8 @@ namespace wml
 			value.name("attribute_value");
 			pair.name("attribute");
 			angle_quoted_string.name("angle-string");
-			double_quoted_string.name("quot-string");
-			endl_terminated_string.name("endl-string");
+			double_quoted_string.name("quote-string");
+			no_quotes_no_endl_string.name("unquoted-string");
 
 			on_error<fail>(
 				key, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
@@ -239,7 +239,7 @@ namespace wml
       BOOST_SPIRIT_DEBUG_NODE(value);
       BOOST_SPIRIT_DEBUG_NODE(double_quoted_string);
       BOOST_SPIRIT_DEBUG_NODE(angle_quoted_string);
-      BOOST_SPIRIT_DEBUG_NODE(endl_terminated_string);
+      BOOST_SPIRIT_DEBUG_NODE(no_quotes_no_endl_string);
 
 		}
 
@@ -254,7 +254,7 @@ namespace wml
 		qi::rule<Iterator, Str()> value;
 		qi::rule<Iterator, Str()> double_quoted_string;
 		qi::rule<Iterator, Str()> angle_quoted_string;
-		qi::rule<Iterator, Str()> endl_terminated_string;
+		qi::rule<Iterator, Str()> no_quotes_no_endl_string;
 
 	};
 }
