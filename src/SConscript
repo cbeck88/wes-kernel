@@ -81,7 +81,9 @@ env.Alias("nl", bin)
 #
 # attr2 binary
 
-bin = env.Program("#/attr2", ["attr2.cpp"])
+attr2_objects = ["attr2.cpp", libwesnoth_extras]
+
+bin = env.Program("#/attr2", attr2_objects)
 env.Alias("attr2", bin)
 
 #

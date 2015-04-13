@@ -155,8 +155,9 @@ namespace wml
 
 			ws = whitespace<Iterator>();
 
-			pair = *ws.weak >> key >> *ws.weak > lit('=') >> *ws.weak > value >> *ws.weak >> ws.endl;
+			pair = *ws.weak >> keylist >> *ws.weak > lit('=') >> *ws.weak > value >> *ws.weak >> ws.endl;
 			key = char_("a-zA-Z_") >> *char_("a-zA-Z_0-9");
+			keylist = key >> *(*ws.weak >> char_(",") >> *ws.weak > key);
 			value = -(lit('_') >> *ws.weak) >> (angle_quoted_string | double_quoted_string | endl_terminated_string);
 
 			angle_quoted_string = qi::string("<<") >> +(char_ - ">>") >> qi::string(">>");
@@ -183,6 +184,7 @@ namespace wml
 			start_tag.name("start_tag");
 			end_tag.name("end_tag");
 			key.name("attribute_key");
+			keylist.name("attribute_keylist");
 			value.name("attribute_value");
 			pair.name("attribute");
 			angle_quoted_string.name("angle-string");
@@ -191,6 +193,12 @@ namespace wml
 
 			on_error<fail>(
 				key, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
+
+					       << val("\"") << std::endl);
+
+			on_error<fail>(
+				keylist, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 
 					       << val("\"") << std::endl);
@@ -227,6 +235,7 @@ namespace wml
       BOOST_SPIRIT_DEBUG_NODE(end_tag);
       BOOST_SPIRIT_DEBUG_NODE(pair);
       BOOST_SPIRIT_DEBUG_NODE(key);
+      BOOST_SPIRIT_DEBUG_NODE(keylist);
       BOOST_SPIRIT_DEBUG_NODE(value);
       BOOST_SPIRIT_DEBUG_NODE(double_quoted_string);
       BOOST_SPIRIT_DEBUG_NODE(angle_quoted_string);
@@ -241,6 +250,7 @@ namespace wml
 		qi::rule<Iterator, void(Str), qi::space_type> end_tag;
 		qi::rule<Iterator, Pair()> pair;
 		qi::rule<Iterator, Str()> key;
+		qi::rule<Iterator, Str()> keylist;
 		qi::rule<Iterator, Str()> value;
 		qi::rule<Iterator, Str()> double_quoted_string;
 		qi::rule<Iterator, Str()> angle_quoted_string;
