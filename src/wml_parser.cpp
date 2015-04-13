@@ -141,11 +141,11 @@ namespace wml
 			using phoenix::construct;
 			using phoenix::val;
 
-			pair = key >> lit('=') >> value;
+			pair = key > lit('=') > value;
 			key = char_("a-zA-Z_") >> *char_("a-zA-Z_0-9");
 			value = -lit('_') >> (angle_quoted_string | double_quoted_string | endl_terminated_string);
 
-			angle_quoted_string = lexeme[qi::string("<<") >> +(char_ - '>') >> qi::string(">>")];
+			angle_quoted_string = lexeme[qi::string("<<") >> +(char_ - ">>") >> qi::string(">>")];
 			double_quoted_string = lexeme['"' >> +(char_ - '"') >> '"'];
 			endl_terminated_string = lexeme[*(char_ - '\n')];
 
@@ -157,12 +157,12 @@ namespace wml
 				     >> lit(']');
 
 			end_tag = lit("[/")
-				  >> string(_r1)
-				  >> lit(']');
+				  > string(_r1)
+				  > lit(']');
 
 			wml %= start_tag[_a = _1]
 			       >> *node
-			       >> end_tag(_a);
+			       > end_tag(_a);
 
 			wml.name("wml");
 			node.name("node");
@@ -172,7 +172,7 @@ namespace wml
 			value.name("attribute_value");
 			pair.name("attribute");
 
-/*			on_error<fail>(
+			on_error<fail>(
 				key, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 
@@ -190,13 +190,19 @@ namespace wml
 					       << val("\"") << std::endl);
 
 			on_error<fail>(
-				node, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+				start_tag, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
 					       << val("\"") << std::endl);
+
+			on_error<fail>(
+				end_tag, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
+					       << val("\"") << std::endl);
+
 			on_error<fail>(
 				wml, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
-					       << val("\"") << std::endl);*/
+					       << val("\"") << std::endl);
 
       BOOST_SPIRIT_DEBUG_NODE(wml);
       BOOST_SPIRIT_DEBUG_NODE(node);
