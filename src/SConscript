@@ -84,4 +84,12 @@ env.Alias("nl", bin)
 bin = env.Program("#/attr2", ["attr2.cpp"])
 env.Alias("attr2", bin)
 
+#
+# test binary
+
+test_objects = ["test.cpp", libwesnoth_extras]
+bin = env.Program("#/test", test_objects)
+env.Alias("test", bin)
+
+
 #Export("wesnoth")

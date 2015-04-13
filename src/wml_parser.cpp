@@ -268,6 +268,52 @@ namespace wml
 
 }
 
+////
+// Test Cases
+////
+
+namespace wml {
+
+template<typename T>
+bool test_case(const char * str, T & gram, bool expected = true)
+{
+	static bool always_show = false;
+
+	using boost::spirit::qi::space;
+	std::string storage = str;
+	std::string::const_iterator iter = storage.begin();
+	std::string::const_iterator end = storage.end();
+
+	std::stringstream foo;
+
+			foo << "-------------------------\n";
+			foo << "Test case:\n";
+			foo << str << std::endl;
+			foo << "-------------------------\n";
+
+	bool r = phrase_parse(iter, end, gram, space);
+
+		if(r && iter == end) {
+			foo << "-------------------------\n";
+			foo << "Parsing succeeded\n";
+			foo << "-------------------------\n";
+			if (always_show || true != expected) std::cout << foo.str() << std::endl;
+			return true == expected;
+		} else {
+			std::string::const_iterator some = iter + 80;
+			std::string context(iter, (some > end) ? end : some);
+			foo << "-------------------------\n";
+			foo << "Parsing failed\n";
+			foo << "stopped at: \": " << context << "...\"\n";
+			foo << "-------------------------\n";
+			if (always_show || false != expected) std::cout << foo.str() << std::endl;
+			return false == expected;
+		}
+
+}
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //  Main program
 ///////////////////////////////////////////////////////////////////////////////
@@ -416,6 +462,53 @@ namespace wml
 
 		return true;
 	}
+
+
+	void test()
+	{
+
+		typedef wml::wml_grammar<std::string::const_iterator> my_grammar;
+		my_grammar gram; // Our grammar
+		wml::body ast;  // Our tree
+
+		auto pair_gram = gram.pair;
+		
+
+		wml::test_case("a=b",pair_gram);
+		wml::test_case("a23=b43",pair_gram);
+		wml::test_case("a=",pair_gram);
+		wml::test_case("a-asdf=23432",pair_gram, false);
+		wml::test_case("a_asdf=23432",pair_gram);
+		wml::test_case("a=\"\nfoooooooo\"",pair_gram);
+		wml::test_case("a=<<asdf>>",pair_gram);
+
+		wml::test_case("[foo][/foo]", gram);
+		wml::test_case("[foo][bar][/bar][/foo][baz][/baz]", gram, false);
+		wml::test_case("\
+[foo]\n\
+  a=b\n\
+  [bar]\n\
+    c=d\n\
+  [/bar]\n\
+[/foo]\n\
+[baz]\n\
+[/baz]", gram, false);
+
+		wml::test_case("[foo]\n\
+a = bde4_@342\n\
+[bar]\n\
+[foo]\n\
+[sd]\n\
+a= b\n\
+[/sd]\n\
+[/foo]\n\
+[/bar]\n\
+[/foo]\n\
+", gram);
+
+	}
+
 }
+
 
 
