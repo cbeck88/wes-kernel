@@ -416,6 +416,7 @@ namespace wml
 				case '#': {
 					std::string temp;
 					getline(ss, temp);
+					output += "\n"; // needed for trailing comments
 					if (temp.size() >= 6) {
 						if (temp.substr(0,6) == "define") {
 							std::cerr << "DEBUG: got a line with a #define, number '" << line << "':\n'" << temp << "'\n";
