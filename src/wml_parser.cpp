@@ -162,8 +162,8 @@ namespace wml
 			keylist = (*ws.weak > key) % (*ws.weak >> char_(","));
 			value = *(*ws.weak >> (angle_quoted_string | double_quoted_string | no_quotes_no_endl_string)) >> *ws.weak >> ws.endl;
 
-			angle_quoted_string = qi::string("<<") >> *(char_ - ">>") >> qi::string(">>");
-			double_quoted_string = '"' >> *(char_ - '"') >> '"';
+			angle_quoted_string = "<<" >> *(char_ - ">>") >> lit(">>");
+			double_quoted_string = '"' >> *(char_ - '"') >> lit('"');
 			no_quotes_no_endl_string = +(char_ - char_("\n\"") - "<<");
 
 			node = wml | pair;
