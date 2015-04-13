@@ -170,6 +170,7 @@ namespace wml
 
 			start_tag %= lit('[')
 				     >> !lit('/')
+				     >> -lit('+')
 				     >> lexeme[+(char_ - ']')]
 				     >> lit(']');
 
