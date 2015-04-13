@@ -172,6 +172,27 @@ namespace wml
 			value.name("attribute_value");
 			pair.name("attribute");
 
+/*			on_error<fail>(
+				key, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
+
+					       << val("\"") << std::endl);
+
+			on_error<fail>(
+				value, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
+					       << val("\"") << std::endl);
+
+
+			on_error<fail>(
+				pair, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
+					       << val("\"") << std::endl);
+
+			on_error<fail>(
+				node, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
+					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
+					       << val("\"") << std::endl);*/
 			on_error<fail>(
 				wml, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
 					       << val(" here: \"") << construct<std::string>(qi::_3, qi::_2) // iterators to error-pos, end
