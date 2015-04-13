@@ -134,15 +134,15 @@ namespace wml
 			using qi::lexeme;
 			using qi::on_error;
 			using qi::fail;
-			using qi::char_;
-			using qi::string;
+			using boost::spirit::unicode::char_;
+			using boost::spirit::unicode::string;
 			using namespace qi::labels;
 
 			using phoenix::construct;
 			using phoenix::val;
 
 			pair = key >> lit('=') >> value;
-			key = qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9");
+			key = char_("a-zA-Z_") >> *char_("a-zA-Z_0-9");
 			value = -lit('_') >> (angle_quoted_string | double_quoted_string | endl_terminated_string);
 
 			angle_quoted_string = lexeme[qi::string("<<") >> +(char_ - '>') >> qi::string(">>")];
