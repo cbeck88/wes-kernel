@@ -123,6 +123,18 @@ namespace wml
 	///////////////////////////////////////////////////////////////////////////
 	//  Our WML grammar definition
 	///////////////////////////////////////////////////////////////////////////
+
+	template <typename Iterator>
+	struct whitespace {
+		qi::rule<Iterator> weak, endl, all;
+
+		whitespace() {
+			weak = boost::spirit::unicode::char_(" \t\r");
+			endl = boost::spirit::unicode::char_("\n");
+			all = weak | endl;
+		}
+	};
+
 	template <typename Iterator>
 	struct wml_grammar
 		: qi::grammar<Iterator, body(), qi::locals<Str>, qi::space_type>
@@ -141,13 +153,15 @@ namespace wml
 			using phoenix::construct;
 			using phoenix::val;
 
-			pair = key > lit('=') > value;
-			key = char_("a-zA-Z_") >> *char_("a-zA-Z_0-9");
-			value = -lit('_') >> (angle_quoted_string | double_quoted_string | endl_terminated_string);
+			ws = whitespace<Iterator>();
 
-			angle_quoted_string = lexeme[qi::string("<<") >> +(char_ - ">>") >> qi::string(">>")];
-			double_quoted_string = lexeme['"' >> +(char_ - '"') >> '"'];
-			endl_terminated_string = lexeme[*(char_ - '\n')];
+			pair = *ws.weak >> key >> *ws.weak > lit('=') >> *ws.weak > value >> *ws.weak >> ws.endl;
+			key = char_("a-zA-Z_") >> *char_("a-zA-Z_0-9");
+			value = -(lit('_') >> *ws.weak) >> (angle_quoted_string | double_quoted_string | endl_terminated_string);
+
+			angle_quoted_string = qi::string("<<") >> +(char_ - ">>") >> qi::string(">>");
+			double_quoted_string = '"' >> +(char_ - '"') >> '"';
+			endl_terminated_string = *(char_ - '\n');
 
 			node = wml | pair;
 
@@ -171,6 +185,9 @@ namespace wml
 			key.name("attribute_key");
 			value.name("attribute_value");
 			pair.name("attribute");
+			angle_quoted_string.name("angle-string");
+			double_quoted_string.name("quot-string");
+			endl_terminated_string.name("endl-string");
 
 			on_error<fail>(
 				key, std::cerr << val("Error! Expecting ") << qi::_4			     // what failed?
@@ -217,16 +234,17 @@ namespace wml
 
 		}
 
+		struct whitespace<Iterator> ws;
 		qi::rule<Iterator, wml::body(), qi::locals<Str>, qi::space_type> wml;
 		qi::rule<Iterator, wml::node(), qi::space_type> node;
 		qi::rule<Iterator, Str(), qi::space_type> start_tag;
 		qi::rule<Iterator, void(Str), qi::space_type> end_tag;
-		qi::rule<Iterator, Pair(), qi::space_type> pair;
-		qi::rule<Iterator, Str(), qi::space_type> key;
-		qi::rule<Iterator, Str(), qi::space_type> value;
-		qi::rule<Iterator, Str(), qi::space_type> double_quoted_string;
-		qi::rule<Iterator, Str(), qi::space_type> angle_quoted_string;
-		qi::rule<Iterator, Str(), qi::space_type> endl_terminated_string;
+		qi::rule<Iterator, Pair()> pair;
+		qi::rule<Iterator, Str()> key;
+		qi::rule<Iterator, Str()> value;
+		qi::rule<Iterator, Str()> double_quoted_string;
+		qi::rule<Iterator, Str()> angle_quoted_string;
+		qi::rule<Iterator, Str()> endl_terminated_string;
 
 	};
 }
@@ -244,6 +262,9 @@ bool test_case(const char * str, T & gram, bool expected = true)
 
 	using boost::spirit::qi::space;
 	std::string storage = str;
+	if (storage.at(storage.size()-1) != '\n') {
+		storage += "\n"; //terminate with endl
+	}
 	std::string::const_iterator iter = storage.begin();
 	std::string::const_iterator end = storage.end();
 
@@ -283,8 +304,13 @@ bool test_case(const char * str, T & gram, bool expected = true)
 namespace wml
 {
 
-	bool parse(const std::string& storage)
+	bool parse(const std::string& sto)
 	{
+		std::string storage = sto;
+		if (storage.at(storage.size()-1) != '\n') {
+			storage += "\n"; //terminate with endl
+		}
+
 		typedef wml_grammar<std::string::const_iterator> my_grammar;
 		my_grammar gram; // Our grammar
 		wml::body ast;  // Our tree
@@ -313,8 +339,13 @@ namespace wml
 	}
 
 
-	bool parse_attr(const std::string& storage)
+	bool parse_attr(const std::string& sto)
 	{
+		std::string storage = sto;
+		if (sto.at(sto.size()-1) != '\n') {
+			storage += "\n"; //terminate with endl
+		}
+
 		typedef wml_grammar<std::string::const_iterator> my_grammar;
 		my_grammar grammar;
 		auto gram = grammar.pair;
