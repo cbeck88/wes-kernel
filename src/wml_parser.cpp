@@ -335,17 +335,22 @@ namespace wml
 		my_grammar gram; // Our grammar
 		wml::body ast;  // Our tree
 
+		std::stringstream errors;
+		wml::errbuf = & errors;
+
 		using boost::spirit::qi::space;
 		std::string::const_iterator iter = storage.begin();
 		std::string::const_iterator end = storage.end();
 		bool r = phrase_parse(iter, end, gram, space, ast);
 
+		wml::errbuf = NULL;
+		
 		if(r && iter == end) {
-			std::cout << "-------------------------\n";
+			/*std::cout << "-------------------------\n";
 			std::cout << "Parsing succeeded\n";
 			std::cout << "-------------------------\n";
 			body_printer printer;
-			printer(ast);
+			printer(ast);*/
 			return true;
 		} else {
 			std::string::const_iterator some = iter + 80;
@@ -354,6 +359,9 @@ namespace wml
 			std::cout << "Parsing failed\n";
 			std::cout << "stopped at: \": " << context << "...\"\n";
 			std::cout << "-------------------------\n";
+			std::cout << "Error log:\n";
+			std::cout << errors.str() << std::endl;
+			std::cout << "-------------------------" << std::endl;
 			return false;
 		}
 	}
