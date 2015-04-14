@@ -114,6 +114,73 @@ int kernel::impl::intf_print(lua_State* L) {
 kernel::impl::impl(kernel::Ctor_it begin, kernel::Ctor_it end) : lua_(luaL_newstate()), log_() {
 	get_kernel_impl(lua_) = this;
 
+	lua_State * L = lua_;
+
+	log_ << "Adding standard libs...\n";
+
+	static const luaL_Reg safe_libs[] = {
+		{ "",       luaopen_base   },
+		{ "table",  luaopen_table  },
+		{ "string", luaopen_string },
+		{ "math",   luaopen_math   },
+		{ "coroutine",   luaopen_coroutine   },
+		{ "debug",  luaopen_debug  },
+		{ "os",     luaopen_os     },
+		{ "bit32",  luaopen_bit32  }, // added in Lua 5.2
+		{ NULL, NULL }
+	};
+	for (luaL_Reg const *lib = safe_libs; lib->func; ++lib)
+	{
+		luaL_requiref(L, lib->name, lib->func, 1);
+		lua_pop(L, 1);  /* remove lib */
+	}
+
+	// Disable functions from os which we don't want.
+	lua_getglobal(L, "os");
+	lua_pushnil(L);
+	while(lua_next(L, -2) != 0) {
+		lua_pop(L, 1);
+		char const* function = lua_tostring(L, -1);
+		if(strcmp(function, "clock") == 0 || strcmp(function, "date") == 0
+			|| strcmp(function, "time") == 0 || strcmp(function, "difftime") == 0) continue;
+		lua_pushnil(L);
+		lua_setfield(L, -3, function);
+	}
+	lua_pop(L, 1);
+
+	// Disable functions from debug which we don't want.
+	lua_getglobal(L, "debug");
+	lua_pushnil(L);
+	while(lua_next(L, -2) != 0) {
+		lua_pop(L, 1);
+		char const* function = lua_tostring(L, -1);
+		if(strcmp(function, "traceback") == 0 || strcmp(function, "getinfo") == 0) continue;	//traceback is needed for our error handler
+		lua_pushnil(L);										//getinfo is needed for ilua strict mode
+		lua_setfield(L, -3, function);
+	}
+	lua_pop(L, 1);
+
+	// Delete dofile and loadfile.
+	lua_pushnil(L);
+	lua_setglobal(L, "dofile");
+	lua_pushnil(L);
+	lua_setglobal(L, "loadfile");
+
+/*
+	// Store the error handler.
+	log_ << "Adding error handler...\n";
+
+	lua_pushlightuserdata(L
+			, executeKey);
+	lua_getglobal(L, "debug");
+	lua_getfield(L, -1, "traceback");
+	lua_remove(L, -2);
+	lua_rawset(L, LUA_REGISTRYINDEX);
+	lua_pop(L, 1);
+*/
+
+	// Redirect print
+	log_ << "Redirecting print...\n";
 	lua_pushcfunction(lua_, &dispatch<&kernel::impl::intf_print>);
 	lua_setglobal(lua_, "print");
 
