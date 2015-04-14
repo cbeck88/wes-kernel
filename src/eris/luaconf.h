@@ -11,6 +11,12 @@
 #include <limits.h>
 #include <stddef.h>
 
+/*
+ * Wesnoth definitions for compatibility
+ */
+#define LUA_COMPAT_MODULE
+
+#define LUA_COMPAT_ALL
 
 /*
 ** ==================================================================
@@ -545,7 +551,8 @@
 ** without modifying the main part of the file.
 */
 
-
+#define WESNOTH_KERNEL_OFFSET sizeof(void*)
+#define LUAI_EXTRASPACE WESNOTH_KERNEL_OFFSET
 
 #endif
 

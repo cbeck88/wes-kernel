@@ -22,6 +22,14 @@ json_parser_sources = Split("""
 
 libjson_extras = client_env.Library("json_extras", json_parser_sources)
 
+
+
+kernel_sources = Split("""
+	kernel.cpp
+""")
+
+libkernel_extras = client_env.Library("kernel_extras", kernel_sources)
+
 #
 # Target declarations
 #
@@ -93,5 +101,15 @@ test_objects = ["test.cpp", libwesnoth_extras]
 bin = env.Program("#/test", test_objects)
 env.Alias("test", bin)
 
+#
+# test_kernel
+#
+
+kernel_objects = ["kernel_test.cpp", libkernel_extras]
+kernel_objects.extend(SConscript("eris/SConscript"))
+
+bin = env.Program("#/kernel_test", kernel_objects)
+env.Alias("kernel_test", bin)
+env.Alias("kernel", bin)
 
 #Export("wesnoth")
