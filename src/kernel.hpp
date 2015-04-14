@@ -3,14 +3,11 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/scoped_ptr.hpp>
 
+#include "kernel_types.hpp"
+
 namespace wesnoth {
 
 typedef boost::property_tree::ptree config;
-
-struct map_location {
-	int x;
-	int y;
-};
 
 class kernel {
 
