@@ -14,59 +14,54 @@ struct map_location {
 
 class kernel {
 
-//****
-// INITIALIZATION
-//****
+	//****
+	// INITIALIZATION
+	//****
 public:
 	typedef std::string::iterator Ctor_it;
 	kernel(Ctor_it begin, Ctor_it end); // Pass Lua script to load
 	~kernel();
 
 private:
-	kernel(const kernel &); // private copy ctor unimplemented for now
+	kernel(const kernel&); // private copy ctor unimplemented for now
 
-//****
-// WRITE ACCESS
-//****
+	//****
+	// WRITE ACCESS
+	//****
 public:
-
 	////
 	// Fire an event in the game.
 	////
 
 	struct event_result {
-		boost::optional<std::string> error;			// If an error occured, contains a message.
+		boost::optional<std::string> error; // If an error occured, contains a message.
 
-									// Conservative appraisals of the outcome:
-		bool game_state_changed;				// There may be false positives but no false negatives.
-		bool undoable;						// There may be false negatives but no false positives.
+		// Conservative appraisals of the outcome:
+		bool game_state_changed; // There may be false positives but no false negatives.
+		bool undoable;           // There may be false negatives but no false positives.
 
-		event_result()
-			: error()
-			, game_state_changed(false)
-			, undoable(true)
-		{}
+		event_result() : error(), game_state_changed(false), undoable(true) {}
 	};
 
-	event_result fire_event(const std::string & name);
+	event_result fire_event(const std::string& name);
 
 	////
 	// Execute a command in the game.
 	////
 
-	event_result do_command(const config & command);
+	event_result do_command(const config& command);
 
 	////
 	// Execute lua code in the game.
 	////
 
-	event_result execute(const std::string & lua);			// Todo: Return a variant?
+	event_result execute(const std::string& lua); // Todo: Return a variant?
 
 	////
 	// Execute an AI turn in the game for the current player.
 	////
 
-	event_result execute_ai_turn();					// Signals an error if the current player is not AI.
+	event_result execute_ai_turn(); // Signals an error if the current player is not AI.
 
 	////
 	// End the turn of the current player. Fires many associated events.
@@ -74,9 +69,9 @@ public:
 
 	event_result end_turn();
 
-//****
-// READ-ONLY ACCESS
-//****
+	//****
+	// READ-ONLY ACCESS
+	//****
 
 	int turn_number() const;
 	int current_side_playing() const;
@@ -84,32 +79,15 @@ public:
 
 	bool can_end_turn() const;
 
-	enum PHASE {
-		INITIAL,
-		PRELOAD,
-		PRESTART,
-		START,
-		PLAY,
-		END
-	};
+	enum PHASE { INITIAL, PRELOAD, PRESTART, START, PLAY, END };
 
 	PHASE get_phase() const;
 
-	enum SIDE_RESULT {
-		VICTORY,
-		DEFEAT,
-		NONE
-	};
+	enum SIDE_RESULT { VICTORY, DEFEAT, NONE };
 
 	SIDE_RESULT get_side_result(int side) const;
 
-	enum CONTROLLER {
-		HUMAN,
-		AI,
-		NETWORK,
-		NETWORK_AI,
-		EMPTY
-	};
+	enum CONTROLLER { HUMAN, AI, NETWORK, NETWORK_AI, EMPTY };
 
 	CONTROLLER get_side_controller(int side) const;
 
@@ -125,32 +103,32 @@ public:
 	// Evaluate a gamestate "report" for use in themes.
 	////
 
-	config read_report(const std::string & name, int viewing_team) const;
+	config read_report(const std::string& name, int viewing_team) const;
 
 	////
 	// Evaluate lua code, with the game in a read-only state.
 	////
 
-	config evaluate(const std::string & lua, int viewing_team) const;
+	config evaluate(const std::string& lua, int viewing_team) const;
 
 	////
 	// Get the logs
 
 	std::string log() const;
-	
-	void set_external_log(std::ostream *) const;
 
-////
-// PIMPL idiom
-////
+	void set_external_log(std::ostream*) const;
+
+	////
+	// PIMPL idiom
+	////
 	class impl;
 
 private:
 	boost::scoped_ptr<impl> impl_;
 
-////
-// Detail: Allow intrusive pointer to the handle.
-////
+	////
+	// Detail: Allow intrusive pointer to the handle.
+	////
 	mutable int ref_count_;
 
 public:

@@ -1,6 +1,5 @@
 #include <wml_parser.hpp>
 
-int main()
-{
+int main() {
 	wml::test();
 }
