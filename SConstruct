@@ -142,7 +142,7 @@ build_dir = os.path.join("$build_dir", "build")
 
 env.SConscript("src/SConscript", variant_dir = build_dir, duplicate = False)
 
-binaries = Split("wml, test, attr, attr2, nl, kv")
+binaries = Split("wml json test attr attr2 nl kv kernel_test")
 #Import(binaries + ["sources"])
 
 all = env.Alias("all", map(Alias, binaries))

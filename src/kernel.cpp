@@ -104,7 +104,7 @@ int dispatch(lua_State *L) {
 
 int kernel::impl::intf_print(lua_State *L)
 {
-	boost::iostreams::stream< boost::iostreams::null_sink > DBG_LUA( ( boost::iostreams::null_sink() ) );
+//	boost::iostreams::stream< boost::iostreams::null_sink > DBG_LUA( ( boost::iostreams::null_sink() ) );
 
 	size_t nargs = lua_gettop(L);
 
@@ -114,11 +114,11 @@ int kernel::impl::intf_print(lua_State *L)
 			str = "";
 		}
 		log_ << str;
-		DBG_LUA << "'" << str << "'\n";
+//		DBG_LUA << "'" << str << "'\n";
 	}
 
 	log_ << "\n";
-	DBG_LUA << "\n";
+//	DBG_LUA << "\n";
 
 	return 0;
 }
