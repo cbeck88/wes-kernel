@@ -42,7 +42,7 @@ struct body {
 	Str name;                   // tag name
 	std::vector<node> children; // children
 };
-}
+} // end namespace wml
 
 // We need to tell fusion about our wml struct
 // to make it a first-class fusion citizen
@@ -223,7 +223,7 @@ struct wml_grammar : qi::grammar<Iterator, body(), qi::locals<Str>, qi::space_ty
 	qi::rule<Iterator, Str()> angle_quoted_string;
 	qi::rule<Iterator, Str()> no_quotes_no_endl_string;
 };
-}
+} // end namespace wml
 
 ////
 // Test Cases
@@ -278,7 +278,7 @@ bool test_case(const char* str, T& gram, bool expected = true) {
 		return false == expected;
 	}
 }
-}
+} // end namespace wml
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Main program
@@ -500,4 +500,4 @@ a= b\n\
 
 	wml::test_case("[foo]a=b\n[/foo]", gram);
 }
-}
+} // end namespace wml
