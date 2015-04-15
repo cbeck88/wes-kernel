@@ -6,6 +6,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/foreach.hpp>
+#include <boost/function.hpp>
 
 #include "kernel.hpp"
 
@@ -30,6 +31,12 @@ struct unit_rec
 	uint32_t id_;
 	map_location loc_;
 	unit unit_;
+
+	// This data is essential for pathfinding -- we cache it from the lua state, and update periodically, using the dirty_ flag to mark when update is needed.
+	int side_;
+	bool ignores_zoc_;
+	bool emits_zoc_;
+	bool dirty_;
 };
 
 struct by_id {};
@@ -62,14 +69,6 @@ typedef unit_map_by_id::iterator unit_map_id_it;
 // associated data types keyed by terrain_id
 ////
 
-typedef std::string terrain_id;
-
-struct unit_movetype {
-	std::map<terrain_id, int> move_cost;
-	bool skirmisher;
-	bool exerts_zoc;
-};
-
 // Map product is useful for turning the game map into a map of move costs at each hex for some unit
 template<typename A, typename B, typename C>
 std::map<A, C> map_product_def( std::map<A,B> m, std::map<B,C> n, C missing_value = C()) {
@@ -78,10 +77,23 @@ std::map<A, C> map_product_def( std::map<A,B> m, std::map<B,C> n, C missing_valu
 	BOOST_FOREACH( const auto & v, m) {
 		auto it = n.find(v.second);
 		if (it != n.end()) {
-			C c = n.at(v.second);
 			result.push_back(v.first, it.second);
 		} else {
 			result.push_back(v.first, missing_value);
+		}
+	}
+	return result;
+}
+
+// The no-default version is less likely to be useful but who knows.
+template<typename A, typename B, typename C>
+std::map<A, C> map_product( std::map<A,B> m, std::map<B,C> n) {
+	std::map<A,C> result;
+
+	BOOST_FOREACH( const auto & v, m) {
+		auto it = n.find(v.second);
+		if (it != n.end()) {
+			result.push_back(v.first, it.second);
 		}
 	}
 	return result;
@@ -91,6 +103,14 @@ std::map<A, C> map_product_def( std::map<A,B> m, std::map<B,C> n, C missing_valu
 // Data corresponding to [movetype]
 ////
 
+/*
+struct unit_movetype {
+	std::map<terrain_id, size_t> move_cost;
+	bool skirmisher;
+	bool exerts_zoc;
+};
+
+
 struct unit_characteristics {
 	unit_movetype movetype_;
 
@@ -98,6 +118,8 @@ struct unit_characteristics {
 
 	//std::map<damage_type, int> resistance;	
 };
+*/
+
 
 ////
 // associative data types keyed by location
@@ -108,29 +130,49 @@ using loc_map = std::map<map_location, T>;
 
 typedef loc_map<terrain_id> terrain_map;
 
-typedef std::map<terrain_id, int> terrain_movecosts;
-typedef loc_map<int> cost_map;
+typedef std::map<terrain_id, size_t> terrain_movecosts;
+
+typedef boost::function<size_t(terrain_id)> terrain_cost_fcn;
+typedef boost::function<size_t(map_location)> move_cost_fcn;
 
 ////
 // graph data
 ////
 
-typedef loc_map<std::set<map_location> > neighbor_map;
-typedef std::set<map_location> neighbor_function(map_location);
-typedef std::map<std::pair<map_location, map_location>, int> metric;
+typedef std::vector<map_location> path;
+struct pathing_node {
+	size_t cost;
+	map_location pred;
+	size_t _extra;
+};
+typedef std::map<map_location, pathing_node> shortest_path_tree;
 
-class topology {
+typedef loc_map<loc_set > neighbor_map;
+typedef loc_set neighbor_function(map_location);
+typedef std::map<std::pair<map_location, map_location>, size_t> metric;
+
+class pathfind_context {
 public:
-	virtual std::set<map_location> neighbors(map_location) {
-		assert(false);
-//		return std::set<map_location>();
+	pathfind_context(const topology & t) 
+		: topo_(t)
+		, tunnels_()
+		, heuristic_cache_()
+	{
 	}
-	virtual bool adjacent(map_location a, map_location b) {
-		auto n = neighbors(b);
-		if(n.find(a) != n.end()) {
+
+	loc_set neighbors(map_location a) {
+		loc_set result = topo_.neighbors(a);
+		auto it = tunnels_.find(a);
+		if (it != tunnels_.end()) {
+			result.insert(it->second.begin(), it->second.end());
+		}
+		return result;
+	}
+
+	bool adjacent(map_location a, map_location b) {
+		if (topo_.adjacent(a, b)) {
 			return true;
 		}
-
 		auto it = tunnels_.find(b);
 		if (it == tunnels_.end()) {
 			return false;
@@ -161,11 +203,10 @@ public:
 		return ret.second; //ret.second is a boolean flag explaining if the emplace operation succeeded in creating a new entry
 	}
 
-	int shortest_path_distance(map_location start, map_location end, cost_map cm = cost_map());
-	std::vector<map_location> shortest_path(map_location start, map_location end, cost_map cm);
-	std::vector<std::vector<map_location> > all_paths(map_location start, cost_map cm = cost_map());
+	size_t shortest_path_distance(map_location start, map_location end, boost::optional<move_cost_fcn> = boost::none);
+	path shortest_path(map_location start, map_location end, boost::optional<move_cost_fcn> = boost::none);
 
-	int heuristic_distance(map_location a , map_location b) {
+	size_t heuristic_distance(map_location a , map_location b) {
 		auto it = heuristic_cache_.find(make_pair(a,b));
 		if (it != heuristic_cache_.end()) {
 			return it->second;
@@ -176,14 +217,37 @@ public:
 		return answer;
 	}
 
+	struct pathing_query {
+		map_location start;
+		boost::optional<move_cost_fcn> cost_map;
+		size_t moves;
+		size_t turns;
+		size_t max_moves;
+
+		boost::optional<move_cost_fcn> first_turn_override_cost_map; //for handling slowed units
+
+		// How to handle other units
+		// Ignore them? Set no moving_team then.
+		// Only handle the units visible to a certain team? Set the viewing_team
+		boost::optional<int> moving_team;
+		boost::optional<int> viewing_team;
+		bool ignore_zoc;
+		unit_map * units;
+	};
+
+	size_t shortest_path_distance(map_location end, const pathing_query &);
+	path shortest_path(map_location end, const pathing_query &);
+
+	loc_set reachable_hexes(const pathing_query &);
+	std::vector<path> reachable_hexes_with_paths(const pathing_query &);
+	shortest_path_tree compute_tree(const pathing_query &);
+
 private:
+	topology topo_;
 	neighbor_map tunnels_;
 	mutable metric heuristic_cache_;
 };
 
-class hex : public topology {
-	std::set<map_location> neighbors(map_location a);
-};
 
 ////
 // Side data structures
@@ -191,17 +255,36 @@ class hex : public topology {
 
 // This is only to cache and speed up vision calculations. All the real info about a side is in the lua table and manipulated in lua.
 class sides {
+public:
+	typedef boost::function<bool(int, int)> ally_calc_function;
+
+	sides( const ally_calc_function & a ) 
+		: ally_calculator_(a)
+	{
+	}
+
+	void update_ally_calculator(const ally_calc_function & f) {
+		ally_calculator_ = f;
+	}
+
+private:
+
+	ally_calc_function ally_calculator_;
+
 	std::map<int, bool> share_maps_;
 	std::map<int, bool> share_vision_;
 
 	typedef std::map< std::pair<int,int>, bool> ally_cache;
 	ally_cache ally_cache_;
 
-	bool are_allied(int, int);
+	bool are_allied(int a, int b);
 
 	typedef loc_map<bool> fog_override;
 	std::map<int, fog_override> fog_override_table_;
 
+	std::map<int, loc_map<bool> > shroud_table_;
+
+public:
 	bool true_fog(map_location, int);
 	boost::optional<bool> get_fog_override(map_location l , int t) {
 		auto tab = fog_override_table_[t];
@@ -221,13 +304,12 @@ class sides {
 	bool ally_adjusted_fog(map_location l, int s) {
 		if (!override_adjusted_fog(l,s)) return false;
 		BOOST_FOREACH(int t, share_vision_ | boost::adaptors::map_keys ) {
-			if (ally_cache_[std::make_pair(s,t)] && share_vision_[t] && !override_adjusted_fog(l, t))
+			if (are_allied(s,t) && share_vision_[t] && !override_adjusted_fog(l, t))
 				return false;
 		}
 		return true;
 	}
 
-	std::map<int, loc_map<bool> > shroud_table_;
 
 	bool true_shroud(map_location l, int s) {
 		return shroud_table_[s][l];
@@ -236,7 +318,7 @@ class sides {
 	bool ally_adjusted_shroud(map_location l, int s) {
 		if (!true_shroud(l,s)) return false;
 		BOOST_FOREACH(int t, share_maps_ | boost::adaptors::map_keys ) {
-			if (ally_cache_[std::make_pair(s,t)] && share_maps_[t] && !true_shroud(l, t))
+			if (are_allied(s,t) && share_maps_[t] && !true_shroud(l, t))
 				return false;
 		}
 		return true;
@@ -250,7 +332,7 @@ class sides {
 struct game_data {
 	terrain_map terrain_map_;
 	unit_map units_;
-	topology topo_;
+	pathfind_context map_with_tunnels_;
 	sides sides_;
 };
 

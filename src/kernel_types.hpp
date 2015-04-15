@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include <string>
 #include <boost/optional.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -21,11 +22,40 @@ namespace wesnoth {
 		bool operator<(const map_location& a) const { return x < a.x || (x == a.x && y < a.y); }
 	};
 
+	typedef std::set<map_location> loc_set;
+
+	class topology {
+	public:
+		virtual loc_set neighbors(map_location) {
+			assert(false && "Your topology must override the default neighbor function");
+		}
+
+		// You should override this also for efficiency, but it might be hard to do better for some exotic topologies.
+		virtual bool adjacent(map_location a, map_location b) {
+			auto n = neighbors(b);
+			if(n.find(a) != n.end()) {
+				return true;
+			}
+			return false;
+		}
+	};
+
+	// The wesnoth topology.
+	class hex : public topology {
+		std::set<map_location> neighbors(map_location a);
+		bool adjacent(map_location a, map_location b);
+	};
+
+
+	// Structure which represents a map. These update functions should update the graphical display.
+
+	typedef std::string terrain_id;
+
 	struct gamemap {
 		virtual ~gamemap() {}
 
-		virtual std::string get_terrain(map_location) const { assert(false); }
-		virtual bool set_terrain(map_location, std::string) { assert(false); }
+		virtual terrain_id get_terrain(map_location) const { assert(false); }
+		virtual bool set_terrain(map_location, terrain_id) { assert(false); }
 
 		virtual void lock_drawing() { assert(false); }
 		virtual void unlock_drawing() { assert(false); }
