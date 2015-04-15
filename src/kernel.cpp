@@ -1,4 +1,6 @@
+#include "game_data.hpp"
 #include "kernel.hpp"
+#include "kernel_types.hpp"
 
 #include "eris/lauxlib.h"
 #include "eris/lua.h"

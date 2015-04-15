@@ -1,13 +1,10 @@
 #pragma once
 
-#include <boost/property_tree/ptree.hpp>
 #include <boost/scoped_ptr.hpp>
 
 #include "kernel_types.hpp"
 
 namespace wesnoth {
-
-typedef boost::property_tree::ptree config;
 
 class kernel {
 

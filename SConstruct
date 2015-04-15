@@ -129,7 +129,7 @@ env.Prepend(CPPPATH = [build_root + "$build_dir", "#/src"])
 env.Append(CPPDEFINES = ["HAVE_CONFIG_H"])
 
 if "gcc" in env["TOOLS"]:
-    env.AppendUnique(CCFLAGS = Split("-W -Wall -std=c++0x"))
+    env.AppendUnique(CCFLAGS = Split("-W -Wall -std=c++11"))
 
 
 env = conf.Finish()

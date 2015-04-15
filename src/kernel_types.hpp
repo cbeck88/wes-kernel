@@ -17,16 +17,18 @@ namespace wesnoth {
 	struct map_location {
 		int x;
 		int y;
+
+		bool operator<(const map_location& a) const { return x < a.x || (x == a.x && y < a.y); }
 	};
 
 	struct gamemap {
-		virtual ~gamemap() = 0;
+		virtual ~gamemap() {}
 
-		virtual std::string get_terrain(map_location) const = 0;
-		virtual bool set_terrain(map_location, std::string) = 0;
+		virtual std::string get_terrain(map_location) const { assert(false); }
+		virtual bool set_terrain(map_location, std::string) { assert(false); }
 
-		virtual void lock_drawing() = 0;
-		virtual void unlock_drawing() = 0;
+		virtual void lock_drawing() { assert(false); }
+		virtual void unlock_drawing() { assert(false); }
 	};
 
 /*	enum DEFEAT_CONDITION {
@@ -37,24 +39,23 @@ namespace wesnoth {
 	};*/
 
 	struct side {
-		virtual ~side() = 0;
-		virtual bool set_attribute(std::string, value) = 0;
-		virtual value get_attribute(std::string) const = 0;
+		virtual ~side() {}
+		virtual bool set_attribute(std::string, value) { assert(false); }
+		virtual value get_attribute(std::string) const { assert(false); }
 
 /*		std::string set_name() const;
 		SIDE_RESULT set_side_result() const;*/
 	};
 
 	struct unit {
-		virtual ~unit() = 0;
+		virtual ~unit() {}
 /*		boost::optional<map_location> get_location() const;
 		bool set_location(boost::optional<map_location>);
 
 		int get_side();*/
 
-		virtual bool set_attribute(std::string, value) = 0;
-		virtual value get_attribute(std::string) const = 0;
-		
+		virtual bool set_attribute(std::string, value) { assert(false); }
+		virtual value get_attribute(std::string) const { assert(false); }
 	};
 
 	// Bundle of functions to allocate externally managed objects

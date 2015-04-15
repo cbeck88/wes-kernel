@@ -26,6 +26,7 @@ libjson_extras = client_env.Library("json_extras", json_parser_sources)
 
 kernel_sources = Split("""
 	kernel.cpp
+	game_data.cpp
 """)
 
 libkernel_extras = client_env.Library("kernel_extras", kernel_sources)
@@ -106,7 +107,8 @@ env.Alias("test", bin)
 #
 
 kernel_objects = ["kernel_test.cpp", libkernel_extras]
-kernel_objects.extend(SConscript("eris/SConscript"))
+eris = SConscript("eris/SConscript")
+kernel_objects.extend(eris)
 
 bin = env.Program("#/kernel_test", kernel_objects)
 env.Alias("kernel_test", bin)
