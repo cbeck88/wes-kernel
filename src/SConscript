@@ -25,9 +25,9 @@ libjson_extras = client_env.Library("json_extras", json_parser_sources)
 
 
 kernel_sources = Split("""
-	kernel.cpp
-	kernel_types.cpp
-	game_data.cpp
+	kernel/kernel.cpp
+	kernel/kernel_types.cpp
+	kernel/game_data.cpp
 	string_utils.cpp
 """)
 

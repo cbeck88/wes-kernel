@@ -1,4 +1,4 @@
-#include <kernel_types.hpp>
+#include "kernel_types.hpp"
 
 namespace wesnoth {
 
