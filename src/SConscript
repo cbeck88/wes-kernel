@@ -28,6 +28,9 @@ kernel_sources = Split("""
 	kernel/kernel.cpp
 	kernel/kernel_types.cpp
 	kernel/game_data.cpp
+	kernel/lua_rng.cpp
+	kernel/mt_rng.cpp
+	kernel/seed_rng.cpp
 	string_utils.cpp
 """)
 

@@ -1,6 +1,7 @@
 #include "game_data.hpp"
 #include "kernel.hpp"
 #include "kernel_types.hpp"
+#include "lua_rng.hpp"
 #include "string_utils.hpp"
 
 #include "eris/lauxlib.h"
@@ -207,6 +208,9 @@ kernel::impl::impl(kernel::Ctor_it begin, kernel::Ctor_it end)
 }
 
 void kernel::impl::load_C_object_metatables() {
+	// Add mersenne twister rng wrapper
+	log_ << "Adding rng tables...\n";
+	lua_rng::load_tables(lua_);
 }
 
 bool kernel::impl::load_string(const std::string& str) {
