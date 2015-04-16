@@ -23,6 +23,20 @@ struct comp {
 	}
 };
 
+static path get_path(const shortest_path_tree & tree, map_location loc) {
+	auto it = tree.find(loc);
+	assert(it != tree.end());
+	std::pair<map_location, pathing_node> pos = *it;
+	path ret(1, pos.first);
+	while (!(pos.second.pred == pos.first)) {
+		ret.push_back(pos.second.pred);
+		auto it = tree.find(pos.second.pred);
+		assert(it != tree.end());
+		pos = *it;
+	}
+	return ret;
+}
+
 // Tries to find a match for a visible enemy at some position with respect to a pathing query
 static const unit_rec * get_visible_enemy(map_location neighbor, const pathfind_context::pathing_query & query, bool must_exert_zoc) {
 	unit_map::index<by_loc>::type & u_map = query.units->get<by_loc>();
@@ -54,7 +68,7 @@ static const unit_rec * get_visible_enemy(map_location neighbor, const pathfind_
 	return NULL;
 }
 
-shortest_path_tree pathfind_context::compute_tree(const pathfind_context::pathing_query & query) {
+shortest_path_tree pathfind_context::compute_tree(const pathfind_context::pathing_query & query, boost::optional<map_location> destination) {
 	shortest_path_tree result;
 
 	std::deque<heap_entry> priority_queue(1, heap_entry(query.start, pathing_node(query.moves, query.turns, query.start)));
@@ -67,6 +81,22 @@ shortest_path_tree pathfind_context::compute_tree(const pathfind_context::pathin
 	while (!priority_queue.empty()) {
 		heap_entry he = priority_queue.front();
 		const map_location & loc = he.first;
+
+		if (destination && *destination == loc) {
+			// If we actually have a destination and we find it in the shortest path tree, we can skip the rest of the computation.
+			shortest_path_tree new_result;
+			std::pair<map_location, pathing_node> pos = he;
+
+			while(!(pos.second.pred == pos.first)) {
+				new_result.insert(pos);
+				auto it = result.find(pos.second.pred);
+				assert(it != result.end());
+				pos = *it;
+			}
+
+			new_result.insert(pos); // we need to insert the final self loop node as well to preserve the invariant of the data structure
+			return new_result;
+		}
 
 		result.insert(he);
 
@@ -96,7 +126,7 @@ shortest_path_tree pathfind_context::compute_tree(const pathfind_context::pathin
 				cost_of_move = (*query.first_turn_override_cost_map)(neighbor);
 				used_first_turn_override = true;
 			} else {
-				cost_of_move = (*query.cost_map)(neighbor);
+				cost_of_move = (query.cost_map ? (*query.cost_map)(neighbor) : 1);
 			}
 
 			size_t turns_left = he.second.turns_left;
@@ -106,7 +136,7 @@ shortest_path_tree pathfind_context::compute_tree(const pathfind_context::pathin
 				turns_left--;
 				moves_left = query.max_moves;
 				if (used_first_turn_override) { //recalculate cost since we had to end the turn
-					cost_of_move = (*query.cost_map)(neighbor);
+					cost_of_move = (query.cost_map ? (*query.cost_map)(neighbor) : 1);
 				}
 			}
 
@@ -149,17 +179,23 @@ std::vector<path> pathfind_context::reachable_hexes_with_paths(const pathfind_co
 	std::vector<path> result;
 	shortest_path_tree tree = compute_tree(query);
 	BOOST_FOREACH(const shortest_path_tree::value_type & v, tree) {
-		std::pair<map_location, pathing_node> pos = v;
-		path p(1, pos.first);
-		while (!(pos.second.pred == pos.first)) {
-			p.push_back(v.second.pred);
-			auto it = tree.find(v.second.pred);
-			assert(it != tree.end());
-			pos = *it;
-		}
-		result.push_back(p);
+		result.push_back(get_path(tree, v.first));
 	}
 	return result;
+}
+
+path pathfind_context::shortest_path(map_location end, const pathing_query & query) {
+	return get_path(compute_tree(query, end), end);
+}
+
+size_t pathfind_context::shortest_path_distance(map_location end, const pathing_query & query) {
+	if (end == query.start) {
+		return 0;
+	}
+	shortest_path_tree tree = compute_tree(query, end);
+	auto it = tree.find(end);
+	assert(it != tree.end());
+	return it->second.turns_left - query.turns + 1;
 }
 
 } // end namespace wesnoth

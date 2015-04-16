@@ -7,6 +7,7 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/foreach.hpp>
 #include <boost/function.hpp>
+#include <boost/optional.hpp>
 
 #include "kernel.hpp"
 
@@ -246,7 +247,7 @@ public:
 
 	loc_set reachable_hexes(const pathing_query &);
 	std::vector<path> reachable_hexes_with_paths(const pathing_query &);
-	shortest_path_tree compute_tree(const pathing_query &);
+	shortest_path_tree compute_tree(const pathing_query &, boost::optional<map_location> dest = boost::none);
 
 private:
 	topology topo_;
