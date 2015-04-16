@@ -28,6 +28,7 @@ kernel_sources = Split("""
 	kernel.cpp
 	kernel_types.cpp
 	game_data.cpp
+	string_utils.cpp
 """)
 
 libkernel_extras = client_env.Library("kernel_extras", kernel_sources)

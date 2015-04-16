@@ -1,6 +1,7 @@
 #include "game_data.hpp"
 #include "kernel.hpp"
 #include "kernel_types.hpp"
+#include "string_utils.hpp"
 
 #include "eris/lauxlib.h"
 #include "eris/lua.h"
@@ -31,6 +32,8 @@ public:
 
 private:
 	lua_State* lua_;
+
+	game_data game_data_;
 
 	std::string my_name() { return "wesnoth-kernel v 0.0.0, (Eris Lua 5.2.3)"; }
 
@@ -67,6 +70,8 @@ private:
 	bool protected_call(int nargs, int nrets);
 
 	int intf_print(lua_State* L);
+
+	bool are_allied(int side1, int side2);
 };
 
 namespace {
@@ -113,7 +118,11 @@ int kernel::impl::intf_print(lua_State* L) {
 	return 0;
 }
 
-kernel::impl::impl(kernel::Ctor_it begin, kernel::Ctor_it end) : lua_(luaL_newstate()), log_() {
+kernel::impl::impl(kernel::Ctor_it begin, kernel::Ctor_it end)
+	: lua_(luaL_newstate())
+	, game_data_(hex(), boost::bind(&impl::are_allied, this, _1, _2))
+	, log_()
+{
 	get_kernel_impl(lua_) = this;
 
 	lua_State * L = lua_;
@@ -265,6 +274,43 @@ bool kernel::impl::protected_call(int nargs, int nrets) {
 	return true;
 }
 
+bool kernel::impl::are_allied(int side1, int side2) {
+	std::string teams1;
+	std::string teams2;
+
+	{
+		lua_getglobal(lua_, "Sides");
+		lua_pushvalue(lua_, -1); //copy it for later
+
+		lua_pushinteger(lua_, side1);
+		lua_rawget(lua_, -2);
+		lua_pushstring(lua_, "teams");
+		lua_rawget(lua_, -2);
+		if (const char * str = lua_tostring(lua_, -1)) {
+			teams1 = str;
+		}
+		lua_pop(lua_, 1);
+
+		lua_pushinteger(lua_, side2);
+		lua_rawget(lua_, -2);
+		lua_pushstring(lua_, "teams");
+		lua_rawget(lua_, -2);
+		if (const char * str = lua_tostring(lua_, -1)) {
+			teams2 = str;
+		}
+		lua_pop(lua_, 1);
+	}
+
+	auto t1_vec = string_utils::split(teams1);
+	auto t2_vec = string_utils::split(teams2);
+	BOOST_FOREACH(const std::string & t1, t1_vec) {
+		if (std::find(t2_vec.begin(), t2_vec.end(), t1) != t2_vec.end()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 ////
 // Implement HANDLE methods (class kernel)
 ////
@@ -326,7 +372,7 @@ bool kernel::is_shrouded(map_location loc, int viewing_team) const {
 }
 
 config kernel::read_report(const std::string& name, int viewing_team) const {
-	return config();
+	return evaluate("wesnoth.theme_items." + name, viewing_team);
 }
 config kernel::evaluate(const std::string& prog, int viewing_team) const {
 	return config();

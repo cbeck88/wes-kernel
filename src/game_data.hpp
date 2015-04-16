@@ -343,6 +343,13 @@ struct game_data {
 	unit_map units_;
 	pathfind_context map_with_tunnels_;
 	sides sides_;
+
+	game_data(const topology & t, const boost::function<bool(int, int)> & ally_calculator)
+		: terrain_map_()
+		, units_()
+		, map_with_tunnels_(t)
+		, sides_(ally_calculator)
+	{}
 };
 
 } // end namespace wesnoth
