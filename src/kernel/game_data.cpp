@@ -40,7 +40,7 @@ static path get_path(const shortest_path_tree & tree, map_location loc) {
 // Tries to find a match for a visible enemy at some position with respect to a pathing query
 static const unit_rec * get_visible_enemy(map_location neighbor, const pathfind_context::pathing_query & query, bool must_exert_zoc) {
 	unit_map::index<by_loc>::type & u_map = query.units->get<by_loc>();
-	sides & sides = *query.sides;
+	sides & sides = *query.sides_;
 	auto u_it = u_map.find(neighbor);
 
 	if (u_it == u_map.end()) { 
@@ -75,8 +75,8 @@ shortest_path_tree pathfind_context::compute_tree(const pathfind_context::pathin
 
 	comp heap_comparator;
 
-	assert(query.sides);
-	sides & sides = *query.sides;
+	assert(query.sides_);
+	sides & sides = *query.sides_;
 
 	while (!priority_queue.empty()) {
 		heap_entry he = priority_queue.front();

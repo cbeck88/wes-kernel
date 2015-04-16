@@ -16,7 +16,7 @@ opts = Variables(GetOption("option_cache"))
 
 opts.AddVariables(
 	ListVariable('default_targets', 'Targets that will be built if no target is specified in command line.',
-		"wml", ["wml"]),
+		"wml,kernel", Split("wml kernel attr attr2 kv")),
 	PathVariable('build_dir', 'Build all intermediate files(objects, test programs, etc) under this dir', "build", PathVariable.PathAccept),
 	('extra_flags_config', 'Extra compiler and linker flags to use for configuration and all builds', ""),
 	PathVariable('bindir', 'Where to install binaries', "bin", PathVariable.PathAccept),

@@ -239,7 +239,7 @@ public:
 		// resources...
 		terrain_map * tmap_;
 		unit_map * units;
-		sides * sides;
+		sides * sides_;
 	};
 
 	size_t shortest_path_distance(map_location end, const pathing_query &);
