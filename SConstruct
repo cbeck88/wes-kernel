@@ -25,6 +25,7 @@ opts.AddVariables(
 	('host', 'Cross-compile host.', ''),
 	('jobs', 'Set the number of parallel compilations', "1", lambda key, value, env: int(value), int),
 	PathVariable('prefix', 'autotools-style installation prefix', "/usr/local", PathVariable.PathAccept),
+	BoolVariable('strict', 'Set to strict compilation', True),
 	BoolVariable("fast", "Make scons faster at cost of less precise dependency tracking.", False),
 	BoolVariable("lockfile", "Create a lockfile to prevent multiple instances of scons from being run at the same time on this working copy.", False),
 	BoolVariable("OS_ENV", "Forward the entire OS environment to scons", False),
@@ -130,6 +131,9 @@ env.Append(CPPDEFINES = ["HAVE_CONFIG_H"])
 
 if "gcc" in env["TOOLS"]:
     env.AppendUnique(CCFLAGS = Split("-W -Wall -std=c++11"))
+
+    if env['strict']:
+        env.AppendUnique(CCFLAGS = Split("-Werror $(-Wno-unused-local-typedefs$)"))
 
 
 env = conf.Finish()
