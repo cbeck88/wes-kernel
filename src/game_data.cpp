@@ -1,6 +1,9 @@
 #include "game_data.hpp"
 #include "kernel.hpp"
 
+#include <boost/range/adaptor/map.hpp>
+#include <boost/range/algorithm/copy.hpp>
+
 namespace wesnoth {
 
 bool sides::are_allied(int a, int b) {
@@ -132,6 +135,29 @@ shortest_path_tree pathfind_context::compute_tree(const pathfind_context::pathin
 			priority_queue.push_back(std::make_pair(neighbor, node));
 			std::push_heap(priority_queue.begin(), priority_queue.end(), heap_comparator);
 		}
+	}
+	return result;
+}
+
+loc_set pathfind_context::reachable_hexes(const pathfind_context::pathing_query & query) {
+	loc_set result;
+	boost::copy(compute_tree(query) | boost::adaptors::map_keys, std::inserter(result, result.end()));
+	return result;
+}
+
+std::vector<path> pathfind_context::reachable_hexes_with_paths(const pathfind_context::pathing_query & query) {
+	std::vector<path> result;
+	shortest_path_tree tree = compute_tree(query);
+	BOOST_FOREACH(const shortest_path_tree::value_type & v, tree) {
+		std::pair<map_location, pathing_node> pos = v;
+		path p(1, pos.first);
+		while (!(pos.second.pred == pos.first)) {
+			p.push_back(v.second.pred);
+			auto it = tree.find(v.second.pred);
+			assert(it != tree.end());
+			pos = *it;
+		}
+		result.push_back(p);
 	}
 	return result;
 }
