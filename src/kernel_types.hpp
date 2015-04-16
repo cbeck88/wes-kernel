@@ -19,7 +19,8 @@ namespace wesnoth {
 		int x;
 		int y;
 
-		bool operator<(const map_location& a) const { return x < a.x || (x == a.x && y < a.y); }
+		bool operator<(const map_location a) const { return x < a.x || (x == a.x && y < a.y); }
+		bool operator==(const map_location a) const { return x == a.x && y == a.y; }
 	};
 
 	typedef std::set<map_location> loc_set;

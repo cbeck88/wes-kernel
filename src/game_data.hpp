@@ -33,10 +33,11 @@ struct unit_rec
 	unit unit_;
 
 	// This data is essential for pathfinding -- we cache it from the lua state, and update periodically, using the dirty_ flag to mark when update is needed.
-	int side_;
-	bool ignores_zoc_;
-	bool emits_zoc_;
-	bool dirty_;
+	mutable int side_;
+	mutable bool hidden_;
+	mutable bool emits_zoc_;
+	mutable bool dirty_;
+	void update() const;
 };
 
 struct by_id {};
@@ -54,16 +55,9 @@ typedef boost::multi_index_container<
 		//ordered by ids
 		ordered_unique<tag<by_id>, member<unit_rec,const uint32_t,&unit_rec::id_> >,
 		//hashed by location
-		hashed_unique<tag<by_loc>, member<unit_rec,const map_location,&unit_rec::loc_> >
+		ordered_unique<tag<by_loc>, member<unit_rec,const map_location,&unit_rec::loc_> >
 	>
 > unit_map;
-
-typedef unit_map::index<by_loc>::type unit_map_by_loc;
-typedef unit_map_by_loc::iterator unit_map_loc_it;
-
-typedef unit_map::index<by_id>::type unit_map_by_id;
-typedef unit_map_by_id::iterator unit_map_id_it;
-
 
 ////
 // associated data types keyed by terrain_id
@@ -141,15 +135,23 @@ typedef boost::function<size_t(map_location)> move_cost_fcn;
 
 typedef std::vector<map_location> path;
 struct pathing_node {
-	size_t cost;
+	size_t moves_left;
+	size_t turns_left;
 	map_location pred;
-	size_t _extra;
+
+	pathing_node(size_t ml, size_t tl, map_location p)
+		: moves_left(ml)
+		, turns_left(tl)
+		, pred(p)
+	{}
 };
 typedef std::map<map_location, pathing_node> shortest_path_tree;
 
 typedef loc_map<loc_set > neighbor_map;
 typedef loc_set neighbor_function(map_location);
 typedef std::map<std::pair<map_location, map_location>, size_t> metric;
+
+class sides;
 
 class pathfind_context {
 public:
@@ -229,10 +231,14 @@ public:
 		// How to handle other units
 		// Ignore them? Set no moving_team then.
 		// Only handle the units visible to a certain team? Set the viewing_team
-		boost::optional<int> moving_team;
-		boost::optional<int> viewing_team;
+		boost::optional<int> moving_side;
+		boost::optional<int> viewing_side;
 		bool ignore_zoc;
+
+		// resources...
+		terrain_map * tmap_;
 		unit_map * units;
+		sides * sides;
 	};
 
 	size_t shortest_path_distance(map_location end, const pathing_query &);
@@ -277,8 +283,10 @@ private:
 	typedef std::map< std::pair<int,int>, bool> ally_cache;
 	ally_cache ally_cache_;
 
+public:
 	bool are_allied(int a, int b);
 
+private:
 	typedef loc_map<bool> fog_override;
 	std::map<int, fog_override> fog_override_table_;
 
