@@ -156,15 +156,15 @@ class sides;
 
 class pathfind_context {
 public:
-	pathfind_context(const topology & t) 
-		: topo_(t)
+	pathfind_context(const geometry & t)
+		: geom_(t)
 		, tunnels_()
 		, heuristic_cache_()
 	{
 	}
 
 	loc_set neighbors(map_location a) {
-		loc_set result = topo_.neighbors(a);
+		loc_set result = geom_.neighbors(a);
 		auto it = tunnels_.find(a);
 		if (it != tunnels_.end()) {
 			result.insert(it->second.begin(), it->second.end());
@@ -173,7 +173,7 @@ public:
 	}
 
 	bool adjacent(map_location a, map_location b) {
-		if (topo_.adjacent(a, b)) {
+		if (geom_.adjacent(a, b)) {
 			return true;
 		}
 		auto it = tunnels_.find(b);
@@ -250,7 +250,7 @@ public:
 	shortest_path_tree compute_tree(const pathing_query &, boost::optional<map_location> dest = boost::none);
 
 private:
-	topology topo_;
+	geometry geom_;
 	neighbor_map tunnels_;
 	mutable metric heuristic_cache_;
 };
@@ -344,10 +344,10 @@ struct game_data {
 	pathfind_context map_with_tunnels_;
 	sides sides_;
 
-	game_data(const topology & t, const boost::function<bool(int, int)> & ally_calculator)
+	game_data(const geometry & g, const boost::function<bool(int, int)> & ally_calculator)
 		: terrain_map_()
 		, units_()
-		, map_with_tunnels_(t)
+		, map_with_tunnels_(g)
 		, sides_(ally_calculator)
 	{}
 };

@@ -102,7 +102,7 @@ shortest_path_tree pathfind_context::compute_tree(const pathfind_context::pathin
 
 		std::pop_heap(priority_queue.begin(), priority_queue.end(), heap_comparator); priority_queue.pop_back();
 
-		BOOST_FOREACH(map_location neighbor, topo_.neighbors(loc)) {
+		BOOST_FOREACH(map_location neighbor, geom_.neighbors(loc)) {
 			if (result.find(neighbor) != result.end()) {
 				continue; //skip nodes that we already processed
 			}
@@ -152,7 +152,7 @@ shortest_path_tree pathfind_context::compute_tree(const pathfind_context::pathin
 				}
 				// If our unit can get zocced, check if it will be by this move
 				if (!query.ignore_zoc && moves_left > 0) {
-					BOOST_FOREACH(map_location neighbor2, topo_.neighbors(neighbor)) {
+					BOOST_FOREACH(map_location neighbor2, geom_.neighbors(neighbor)) {
 						if (get_visible_enemy(neighbor2, query, true)) {
 							moves_left = 0;
 							break;

@@ -23,7 +23,7 @@ std::set<map_location> hex::neighbors(map_location a) {
 }
 
 bool hex::adjacent(map_location a, map_location b) {
-	return topology::adjacent(a, b);
+	return geometry::adjacent(a, b);
 }
 
 } // end namespace wesnoth

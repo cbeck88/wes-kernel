@@ -25,7 +25,7 @@ namespace wesnoth {
 
 	typedef std::set<map_location> loc_set;
 
-	class topology {
+	class geometry {
 	public:
 		virtual loc_set neighbors(map_location) {
 			assert(false && "Your topology must override the default neighbor function");
@@ -41,8 +41,8 @@ namespace wesnoth {
 		}
 	};
 
-	// The wesnoth topology.
-	class hex : public topology {
+	// The wesnoth hex geometry.
+	class hex : public geometry {
 		std::set<map_location> neighbors(map_location a);
 		bool adjacent(map_location a, map_location b);
 	};
