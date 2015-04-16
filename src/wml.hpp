@@ -23,6 +23,8 @@ struct body {
 	std::vector<node> children; // children
 };
 
+typedef std::vector<node> config;
+
 ///////////////////////////////////////////////////////////////////////////
 //  Print out the wml tree
 ///////////////////////////////////////////////////////////////////////////
@@ -71,5 +73,22 @@ void body_printer::operator()(body const& w) const {
 	std::cout << '}' << std::endl;
 }
 
+struct config_printer {
+	config_printer(int indent = 0) : indent(indent) {}
+
+	void operator()(config const&) const;
+
+	int indent;
+};
+
+void config_printer::operator()(config const & c) const {
+	tab(indent);
+	std::cout << '{' << std::endl;
+
+	BOOST_FOREACH (node const& n, c) { boost::apply_visitor(node_printer(indent), n); }
+
+	tab(indent);
+	std::cout << '}' << std::endl;
+}
 
 } // end namespace wml

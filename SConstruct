@@ -135,6 +135,10 @@ if "gcc" in env["TOOLS"]:
     if env['strict']:
         env.AppendUnique(CCFLAGS = Split("-Werror $(-Wno-unused-local-typedefs$)"))
 
+    if "clang" in env["CXX"]:
+        # Silence warnings about unused -I options and unknown warning switches.
+        env.AppendUnique(CCFLAGS = Split("-Qunused-arguments -Wno-unknown-warning-option"))
+
 
 env = conf.Finish()
 client_env = env.Clone()
