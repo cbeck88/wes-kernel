@@ -29,7 +29,7 @@ struct unit_rec
 	{
 	}
 
-	uint32_t id_;
+	int id_;
 	map_location loc_;
 	unit unit_;
 
@@ -54,7 +54,7 @@ typedef boost::multi_index_container<
 	unit_rec,
 	indexed_by<
 		//ordered by ids
-		ordered_unique<tag<by_id>, member<unit_rec,const uint32_t,&unit_rec::id_> >,
+		ordered_unique<tag<by_id>, member<unit_rec,const int,&unit_rec::id_> >,
 		//hashed by location
 		ordered_unique<tag<by_loc>, member<unit_rec,const map_location,&unit_rec::loc_> >
 	>
