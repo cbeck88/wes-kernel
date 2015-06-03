@@ -1,4 +1,5 @@
 .scons-option-cache
+/scons/*.pyc
 build/
 wml
 json
