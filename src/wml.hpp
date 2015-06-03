@@ -81,7 +81,7 @@ struct config_printer {
 	int indent;
 };
 
-void config_printer::operator()(config const & c) const {
+void config_printer::operator()(config const& c) const {
 	tab(indent);
 	std::cout << '{' << std::endl;
 

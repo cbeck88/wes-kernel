@@ -29,23 +29,17 @@
  * This class corrects this shortcoming, allowing something like this:
  *  string result = (formatter() << "blah " << n << x << " blah").str();
  */
-class formatter
-{
+class formatter {
 public:
-	formatter() :
-		stream_()
-	{
-	}
+	formatter() : stream_() {}
 
-	template<typename T>
+	template <typename T>
 	formatter& operator<<(const T& o) {
 		stream_ << o;
 		return *this;
 	}
 
-	std::string str() {
-		return stream_.str();
-	}
+	std::string str() { return stream_.str(); }
 
 private:
 	std::ostringstream stream_;

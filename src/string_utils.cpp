@@ -17,15 +17,13 @@ const std::string unicode_figure_dash = "‒";
 const std::string unicode_multiplication_sign = "×";
 const std::string unicode_bullet = "•";
 
-bool isnewline(const char c)
-{
+bool isnewline(const char c) {
 	return c == '\r' || c == '\n';
 }
 
 // Make sure that we can use Mac, DOS, or Unix style text files on any system
 // and they will work, by making sure the definition of whitespace is consistent
-bool portable_isspace(const char c)
-{
+bool portable_isspace(const char c) {
 	// returns true only on ASCII spaces
 	if (static_cast<unsigned char>(c) >= 128)
 		return false;
@@ -34,13 +32,11 @@ bool portable_isspace(const char c)
 
 // Make sure we regard '\r' and '\n' as a space, since Mac, Unix, and DOS
 // all consider these differently.
-bool notspace(const char c)
-{
+bool notspace(const char c) {
 	return !portable_isspace(c);
 }
 
-std::string &strip(std::string &str)
-{
+std::string& strip(std::string& str) {
 	// If all the string contains is whitespace,
 	// then the whitespace may have meaning, so don't strip it
 	std::string::iterator it = std::find_if(str.begin(), str.end(), notspace);
@@ -53,8 +49,7 @@ std::string &strip(std::string &str)
 	return str;
 }
 
-std::string &strip_end(std::string &str)
-{
+std::string& strip_end(std::string& str) {
 	str.erase(std::find_if(str.rbegin(), str.rend(), notspace).base(), str.end());
 
 	return str;
@@ -69,9 +64,8 @@ std::string &strip_end(std::string &str)
  *                    REMOVE_EMPTY causes empty pieces to be skipped/removed.
  *                    STRIP_SPACES causes the leading and trailing spaces of each piece to be ignored/stripped.
  */
-std::vector< std::string > split(std::string const &val, const char c, const int flags)
-{
-	std::vector< std::string > res;
+std::vector<std::string> split(std::string const& val, const char c, const int flags) {
+	std::vector<std::string> res;
 
 	std::string::const_iterator i1 = val.begin();
 	std::string::const_iterator i2;
@@ -79,7 +73,7 @@ std::vector< std::string > split(std::string const &val, const char c, const int
 		while (i1 != val.end() && portable_isspace(*i1))
 			++i1;
 	}
-	i2=i1;
+	i2 = i1;
 
 	while (i2 != val.end()) {
 		if (*i2 == c) {

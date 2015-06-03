@@ -1,0 +1,63 @@
+-- EVENT layout:
+-- { 
+--	name
+--	id
+--	conditional
+--	action
+-- }
+
+-- Events is a TABLE of ARRAYS, indexed by NAME
+
+-- MENU_ITEM layout:
+-- { 
+--	id
+--	show_if
+--	conditional
+--	action
+-- }
+
+-- kernel.wml_menu_items is a TABLE indexed by id
+
+-- Variables is a TABLE of string | numeric | table. Meant to be backwards compatible with wesnoth 1 and used for variable substitution
+
+-- Labels is a TABLE, representing a map: map_location -> { string text, int player, bool share }
+
+-- Villages is a TABLE, representing a map: map_location -> { int owner | 0 for none }
+
+-- Map is a USERDATA, can use get_terrain(map_location)
+
+-- Units is a USERDATA, can use get(map_location) or get(id), and can "put" which is like unstore
+-- Units is a big heavy lifter -- pushing units is what updates the vision data structures
+-- Make units with Unit(...) or LuaUnit(...)
+-- Units are USERDATA also, being bound to custom objects somehow
+
+-- Sides is a TABLE, usable as an array but with some custom functions for Allied With 
+-- A side is userdata but is basically static table data typically.
+-- Sides contain FOG and SHROUD override data, stored essentially as a map_location -> optional bool table. (But it's really userdata.)
+-- They contain "proxy shroud data" for "true" vision and "adjusted" vision of both kinds.
+-- Under Sides[k].Vision
+
+-- Pathing is a table of functions to find distances, directions, and shortest paths
+-- And get adjacent locations
+-- (Topology?)
+
+-- TimeOfDay.Schedule is the current (default) TOD schedule
+-- TimeOfDay.TimeAreas is the array of registered time areas entries
+
+Events = {}
+Labels = {}
+Map = {}
+Pathing = {}
+Sides = {}
+TimeOfDay = {}
+TimeOfDay.Schedule = {}
+TimeOfDay.TimeAreas = {}
+Units = {}
+Variables = {}
+Villages = {}
+
+-- Normally static
+--MoveTypes = {}
+--TerrainTypes = {}
+--UnitTypes = {}
+
